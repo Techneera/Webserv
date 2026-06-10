@@ -50,18 +50,18 @@ The architecture prioritizes resilience: the server must remain operational unde
 ### 2.1 Execution Model
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
+┌──────────────────────────────────────────────────────────────────────────────┐
 │                              MAIN PROCESS                                    │
-│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐  │
-│  │  Signal Handler │    │  Config Parser  │    │      Logger             │  │
-│  │  (SIGINT,       │    │  (NGINX-inspired│    │  (Access, Error, Debug) │  │
-│  │   SIGTERM,      │    │   syntax)       │    │                         │  │
-│  │   SIGPIPE)      │    │                 │    │                         │  │
-│  └────────┬────────┘    └────────┬────────┘    └────────────┬────────────┘  │
+│  ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────────────┐   │
+│  │  Signal Handler │    │  Config Parser  │    │      Logger             │   │
+│  │  (SIGINT,       │    │  (NGINX-inspired│    │  (Access, Error, Debug) │   │
+│  │   SIGTERM,      │    │   syntax)       │    │                         │   │
+│  │   SIGPIPE)      │    │                 │    │                         │   │
+│  └────────┬────────┘    └────────┬────────┘    └────────────┬────────────┘   │
 │           │                      │                          │                │
 │           ▼                      ▼                          ▼                │
 │  ┌─────────────────────────────────────────────────────────────────────────┐ │
-│  │                        EVENT LOOP (epoll_wait)                         │ │
+│  │                        EVENT LOOP (epoll_wait)                         │  │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐  │ │
 │  │  │  Listener   │  │   Client    │  │   Client    │  │  CGI Pipe      │  │ │
 │  │  │  Sockets    │  │  Sockets    │  │  Sockets    │  │  (read/write)  │  │ │
@@ -71,24 +71,24 @@ The architecture prioritizes resilience: the server must remain operational unde
 │           │                      │                          │                │
 │           ▼                      ▼                          ▼                │
 │  ┌─────────────────────────────────────────────────────────────────────────┐ │
-│  │                     REQUEST/RESPONSE PROCESSOR                           │ │
+│  │                     REQUEST/RESPONSE PROCESSOR                          │ │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐  │ │
 │  │  │   Parser    │  │   Router    │  │   Handler   │  │   Responder    │  │ │
 │  │  │  (HTTP/1.1) │  │  (Location  │  │  (Static/   │  │  (Buffer mgmt) │  │ │
-│  │  │             │  │   match)    │  │   CGI/Upload)│  │                │  │ │
+│  │  │             │  │   match)    │  │   CGI/Upload)│  │                │ │ │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────┘  │ │
 │  └─────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌─────────────────────────────────────────────────────────────────────────┐ │
-│  │                        CGI SUBPROCESSES (fork/execve)                    │ │
+│  │                        CGI SUBPROCESSES (fork/execve)                   │ │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                      │ │
 │  │  │  php-cgi    │  │  python3    │  │  other      │                      │ │
 │  │  │  (stdin)    │  │  (stdin)    │  │  interpreters                      │ │
 │  │  │  (stdout)   │  │  (stdout)   │  │  via shebang)                      │ │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘                      │ │
 │  └─────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### 2.2 Key Characteristics
@@ -137,60 +137,60 @@ The architecture prioritizes resilience: the server must remain operational unde
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                           webserv COMPONENTS                                 │
+│                           webserv COMPONENTS                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐│
-│  │   Server    │  │   Config    │  │   Logger    │  │   SignalManager     ││
-│  │   Engine    │  │   Loader    │  │             │  │                     ││
-│  │             │  │             │  │             │  │                     ││
-│  │ - EventLoop │  │ - Parse file│  │ - AccessLog │  │ - SIGINT handler    ││
-│  │ - epoll mgmt│  │ - Validate  │  │ - ErrorLog  │  │ - SIGTERM handler   ││
-│  │ - Lifecycle │  │ - Defaults  │  │ - DebugLog  │  │ - SIGPIPE ignore    ││
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘│
-│         │                │                │                    │           │
-│         ▼                ▼                ▼                    ▼           │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
+│  │   Server    │  │   Config    │  │   Logger    │  │   SignalManager     │ │
+│  │   Engine    │  │   Loader    │  │             │  │                     │ │
+│  │             │  │             │  │             │  │                     │ │
+│  │ - EventLoop │  │ - Parse file│  │ - AccessLog │  │ - SIGINT handler    │ │
+│  │ - epoll mgmt│  │ - Validate  │  │ - ErrorLog  │  │ - SIGTERM handler   │ │
+│  │ - Lifecycle │  │ - Defaults  │  │ - DebugLog  │  │ - SIGPIPE ignore    │ │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘  └──────────┬──────────┘ │
+│         │                │                │                    │            │
+│         ▼                ▼                ▼                    ▼            │
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │                         Connection Manager                               ││
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐││
-│  │  │   Listener  │  │   Client    │  │   Client    │  │   Client       │││
-│  │  │   (Port 80) │  │   (Conn 1)  │  │   (Conn 2)  │  │   (Conn N)     │││
-│  │  │             │  │   State:    │  │   State:    │  │   State:       │││
-│  │  │ - bind()    │  │   READ_HDR  │  │   WRITE_RSP │  │   PROCESS_CGI  │││
-│  │  │ - listen()  │  │             │  │             │  │                │││
-│  │  │ - epoll_ctl │  │ - recv buf  │  │ - send buf  │  │ - cgi pipe fd  │││
-│  │  │   (EPOLLIN) │  │ - request   │  │ - response  │  │ - cgi pid      │││
-│  │  └─────────────┘  │ - timestamp │  │ - timestamp │  │ - timeout      │││
-│  │                   └─────────────┘  └─────────────┘  └────────────────┘││
+│  │                         Connection Manager                              ││
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐  ││
+│  │  │   Listener  │  │   Client    │  │   Client    │  │   Client       │  ││
+│  │  │   (Port 80) │  │   (Conn 1)  │  │   (Conn 2)  │  │   (Conn N)     │  ││
+│  │  │             │  │   State:    │  │   State:    │  │   State:       │  ││
+│  │  │ - bind()    │  │   READ_HDR  │  │   WRITE_RSP │  │   PROCESS_CGI  │  ││
+│  │  │ - listen()  │  │             │  │             │  │                │  ││
+│  │  │ - epoll_ctl │  │ - recv buf  │  │ - send buf  │  │ - cgi pipe fd  │  ││
+│  │  │   (EPOLLIN) │  │ - request   │  │ - response  │  │ - cgi pid      │  ││
+│  │  └─────────────┘  │ - timestamp │  │ - timestamp │  │ - timeout      │  ││
+│  │                   └─────────────┘  └─────────────┘  └────────────────┘  ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 │                                    │                                        │
 │                                    ▼                                        │
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │                      HTTP Processing Pipeline                            ││
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐││
-│  │  │   Request   │  │   Router    │  │   Handler   │  │   Response     │││
-│  │  │   Parser    │  │             │  │   Factory   │  │   Builder      │││
-│  │  │             │  │             │  │             │  │                │││
-│  │  │ - StateMach │  │ - Prefix    │  │ - Static    │  │ - StatusLine   │││
-│  │  │ - URI decode│  │   match     │  │ - CGI       │  │ - Headers      │││
-│  │  │ - HeaderVal │  │ - Method    │  │ - Upload    │  │ - Body         │││
-│  │  │ - Body parse│  │   check     │  │ - Redirect  │  │ - Chunked enc  │││
-│  │  │ - Chunked   │  │ - Config    │  │ - Autoindex │  │                │││
-│  │  │   decode    │  │   resolve   │  │ - ErrorPage │  │                │││
-│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────┘││
+│  │                      HTTP Processing Pipeline                           ││
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐  ││
+│  │  │   Request   │  │   Router    │  │   Handler   │  │   Response     │  ││
+│  │  │   Parser    │  │             │  │   Factory   │  │   Builder      │  ││
+│  │  │             │  │             │  │             │  │                │  ││
+│  │  │ - StateMach │  │ - Prefix    │  │ - Static    │  │ - StatusLine   │  ││
+│  │  │ - URI decode│  │   match     │  │ - CGI       │  │ - Headers      │  ││
+│  │  │ - HeaderVal │  │ - Method    │  │ - Upload    │  │ - Body         │  ││
+│  │  │ - Body parse│  │   check     │  │ - Redirect  │  │ - Chunked enc  │  ││
+│  │  │ - Chunked   │  │ - Config    │  │ - Autoindex │  │                │  ││
+│  │  │   decode    │  │   resolve   │  │ - ErrorPage │  │                │  ││
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────┘  ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 │                                    │                                        │
 │                                    ▼                                        │
 │  ┌─────────────────────────────────────────────────────────────────────────┐│
-│  │                        CGI Manager                                       ││
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                     ││
-│  │  │   CgiProcess│  │   EnvSetup  │  │   PipeI/O   │                     ││
-│  │  │             │  │             │  │             │                     ││
-│  │  │ - fork()    │  │ - RFC 3875  │  │ - epoll     │                     ││
-│  │  │ - execve()  │  │   variables │  │   monitor   │                     ││
-│  │  │ - waitpid() │  │ - PATH_INFO │  │ - static    │                     ││
-│  │  │ - timeout   │  │ - QUERY_STR │  │   buffer    │                     ││
-│  │  │   (kill)    │  │ - HTTP_*    │  │ - timeout   │                     ││
-│  │  └─────────────┘  └─────────────┘  └─────────────┘                     ││
+│  │                        CGI Manager                                      ││
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                      ││
+│  │  │   CgiProcess│  │   EnvSetup  │  │   PipeI/O   │                      ││
+│  │  │             │  │             │  │             │                      ││
+│  │  │ - fork()    │  │ - RFC 3875  │  │ - epoll     │                      ││
+│  │  │ - execve()  │  │   variables │  │   monitor   │                      ││
+│  │  │ - waitpid() │  │ - PATH_INFO │  │ - static    │                      ││
+│  │  │ - timeout   │  │ - QUERY_STR │  │   buffer    │                      ││
+│  │  │   (kill)    │  │ - HTTP_*    │  │ - timeout   │                      ││
+│  │  └─────────────┘  └─────────────┘  └─────────────┘                      ││
 │  └─────────────────────────────────────────────────────────────────────────┘│
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -272,10 +272,10 @@ The architecture prioritizes resilience: the server must remain operational unde
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CGI EXECUTION FLOW                              │
+│                              CGI EXECUTION FLOW                             │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│   Client Request (POST /script.php)                                          │
+│   Client Request (POST /script.php)                                         │
 │        │                                                                    │
 │        ▼                                                                    │
 │   ┌─────────────┐                                                           │
@@ -283,16 +283,16 @@ The architecture prioritizes resilience: the server must remain operational unde
 │   └─────────────┘                                                           │
 │        │                                                                    │
 │        ▼                                                                    │
-│   ┌─────────────┐     fork()     ┌─────────────┐     execve("php-cgi")   │
-│   │   pipe()    │───────────────▶│   Child     │────────────────────────▶  │
-│   │  (2 pipes:  │                │  Process    │    stdin ◀── request body │
+│   ┌─────────────┐     fork()     ┌─────────────┐     execve("php-cgi")      │
+│   │   pipe()    │───────────────▶│   Child     │────────────────────────▶   │
+│   │  (2 pipes:  │                │  Process    │    stdin ◀── request body  │
 │   │   stdin,    │                │             │    stdout ──▶ response     │
 │   │   stdout)   │◀───────────────│  (php-cgi)  │                            │
 │   └─────────────┘   waitpid()    └─────────────┘                            │
 │        │                                                                    │
 │        ▼                                                                    │
 │   ┌─────────────┐                                                           │
-│   │  epoll_ctl  │──▶ Monitor parent-side pipe fds for EPOLLIN/EPOLLOUT     │
+│   │  epoll_ctl  │──▶ Monitor parent-side pipe fds for EPOLLIN/EPOLLOUT      │
 │   │  (EPOLLIN on│                                                           │
 │   │   stdout,   │                                                           │
 │   │  EPOLLOUT on│                                                           │
@@ -313,12 +313,12 @@ The architecture prioritizes resilience: the server must remain operational unde
 │        │                                                                    │
 │        ▼                                                                    │
 │   ┌─────────────┐                                                           │
-│   │   Build     │──▶ HTTP/1.1 response to client                           │
+│   │   Build     │──▶ HTTP/1.1 response to client                            │
 │   │   Response  │                                                           │
 │   └─────────────┘                                                           │
 │                                                                             │
-│   TIMEOUT GUARD: If CGI exceeds configured timeout, send SIGKILL,          │
-│   return 504 Gateway Timeout to client.                                      │
+│   TIMEOUT GUARD: If CGI exceeds configured timeout, send SIGKILL,           │
+│   return 504 Gateway Timeout to client.                                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -341,49 +341,49 @@ The architecture prioritizes resilience: the server must remain operational unde
          │         │  (epoll:    │                             │
          │         │   EPOLLIN)  │                             │
          │         └──────┬──────┘                             │
-         │                │ recv() returns data                  │
-         │                ▼                                     │
-         │         ┌─────────────┐                            │
+         │                │ recv() returns data                │
+         │                ▼                                    │
+         │         ┌─────────────┐                             │
          │         │READING_HDRS │◀──────┐                     │
          │         │  (parse     │       │ partial data        │
          │         │   request   │───────┘                     │
-         │         │   line &    │                            │
-         │         │   headers)  │                            │
-         │         └──────┬──────┘                            │
-         │                │ headers complete                  │
-         │                ▼                                   │
-         │         ┌─────────────┐     Content-Length/        │
-         │         │READING_BODY │◀─── chunked body          │
+         │         │   line &    │                             │
+         │         │   headers)  │                             │
+         │         └──────┬──────┘                             │
+         │                │ headers complete                   │
+         │                ▼                                    │
+         │         ┌─────────────┐     Content-Length/         │
+         │         │READING_BODY │◀─── chunked body            │
          │         │  (recv body │──── partial data            │
-         │         │   data)     │                            │
-         │         └──────┬──────┘                            │
-         │                │ body complete                     │
-         │                ▼                                   │
-         │         ┌─────────────┐                            │
-         │         │ PROCESSING  │                            │
-         │         │  (route &   │                            │
-         │         │   handle)   │                            │
-         │         └──────┬──────┘                            │
-         │                │                                   │
-         │       ┌────────┴────────┐                        │
-         │       ▼                 ▼                        │
-         │ ┌─────────────┐   ┌─────────────┐                │
-         │ │WRITING_RSP  │   │WRITING_CGI  │                │
-         │ │  (send()    │   │  (write to  │                │
-         │ │   response) │   │   CGI stdin)│                │
-         │ └──────┬──────┘   └──────┬──────┘                │
-         │        │                 │                       │
-         │        │ send complete   │ write complete        │
-         │        ▼                 ▼                       │
-         │ ┌─────────────┐   ┌─────────────┐                │
-         │ │   DONE      │   │READING_CGI  │                │
-         │ │  (close or  │   │  (read CGI  │                │
-         │ │   keep-alive│   │   stdout)   │                │
-         │ └──────┬──────┘   └──────┬──────┘                │
-         │        │                 │ read complete         │
-         │        │ keep-alive      ▼                       │
-         │        │         ┌─────────────┐                  │
-         └────────┘         │ PROCESSING  │──────────────────┘
+         │         │   data)     │                             │
+         │         └──────┬──────┘                             │
+         │                │ body complete                      │
+         │                ▼                                    │
+         │         ┌─────────────┐                             │
+         │         │ PROCESSING  │                             │
+         │         │  (route &   │                             │
+         │         │   handle)   │                             │
+         │         └──────┬──────┘                             │
+         │                │                                    │
+         │       ┌────────┴────────┐                           │
+         │       ▼                 ▼                           │
+         │ ┌─────────────┐   ┌─────────────┐                   │
+         │ │WRITING_RSP  │   │WRITING_CGI  │                   │
+         │ │  (send()    │   │  (write to  │                   │
+         │ │   response) │   │   CGI stdin)│                   │
+         │ └──────┬──────┘   └──────┬──────┘                   │
+         │        │                 │                          │
+         │        │ send complete   │ write complete           │
+         │        ▼                 ▼                          │
+         │ ┌─────────────┐   ┌─────────────┐                   │
+         │ │   DONE      │   │READING_CGI  │                   │
+         │ │  (close or  │   │  (read CGI  │                   │
+         │ │   keep-alive│   │   stdout)   │                   │
+         │ └──────┬──────┘   └──────┬──────┘                   │
+         │        │                 │ read complete            │
+         │        │ keep-alive      ▼                          │
+         │        │         ┌─────────────┐                    │
+         └────────┘         │ PROCESSING  │────────────────────┘
                             │  (CGI resp  │
                             │   parsed)   │
                             └─────────────┘
@@ -446,10 +446,10 @@ request-line   = method SP request-target SP HTTP-version CRLF
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                              ROUTING DECISION                                │
+│                              ROUTING DECISION                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  Input: (server_block, method, URI)                                           │
+│  Input: (server_block, method, URI)                                         │
 │                                                                             │
 │  Step 1: Server Selection                                                   │
 │    - Match by destination port                                              │
@@ -464,10 +464,10 @@ request-line   = method SP request-target SP HTTP-version CRLF
 │    - If not allowed → return 405 Method Not Allowed                         │
 │                                                                             │
 │  Step 4: Action Determination                                               │
-│    - If `return` directive present → redirect response                     │
+│    - If `return` directive present → redirect response                      │
 │    - If URI has CGI extension → CGI handler                                 │
 │    - If method is POST and upload_path set → upload handler                 │
-│    - If URI resolves to file → static file handler                         │
+│    - If URI resolves to file → static file handler                          │
 │    - If URI resolves to directory → index file or autoindex                 │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
@@ -575,37 +575,37 @@ CGI execution is triggered when:
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         CGI PROCESS LIFECYCLE                                │
+│                         CGI PROCESS LIFECYCLE                               │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  1. PREPARATION                                                             │
-│     - Create two pipes: [server→CGI stdin] and [CGI stdout→server]         │
-│     - Set parent-side pipe fds to non-blocking (O_NONBLOCK)                │
-│     - Register both pipes with epoll (stdin: EPOLLOUT, stdout: EPOLLIN)    │
+│     - Create two pipes: [server→CGI stdin] and [CGI stdout→server]          │
+│     - Set parent-side pipe fds to non-blocking (O_NONBLOCK)                 │
+│     - Register both pipes with epoll (stdin: EPOLLOUT, stdout: EPOLLIN)     │
 │                                                                             │
 │  2. FORK                                                                    │
 │     - Child process:                                                        │
 │       * Close unused pipe ends                                              │
 │       * dup2() stdin pipe to STDIN_FILENO                                   │
-│       * dup2() stdout pipe to STDOUT_FILENO                                │
+│       * dup2() stdout pipe to STDOUT_FILENO                                 │
 │       * chdir() to CGI script directory                                     │
 │       * Set all RFC 3875 environment variables                              │
-│       * execve() the CGI interpreter with script as argument                 │
-│     - Parent process:                                                        │
-│       * Close child-side pipe ends                                           │
+│       * execve() the CGI interpreter with script as argument                │
+│     - Parent process:                                                       │
+│       * Close child-side pipe ends                                          │
 │       * Store child PID and pipe fds in Client state                        │
 │       * Start CGI timeout timer                                             │
 │                                                                             │
 │  3. I/O PHASE (via epoll)                                                   │
 │     - If request body exists and stdin pipe is writable:                    │
-│       * Write body chunks to CGI stdin (non-blocking)                      │
-│       * If chunked request, server has already de-chunked the body           │
-│     - If stdout pipe is readable:                                            │
+│       * Write body chunks to CGI stdin (non-blocking)                       │
+│       * If chunked request, server has already de-chunked the body          │
+│     - If stdout pipe is readable:                                           │
 │       * Read CGI output into static buffer                                  │
 │       * Continue until EOF (pipe closed by CGI exit)                        │
 │                                                                             │
 │  4. COMPLETION                                                              │
-│     - Detect CGI termination (pipe EOF + waitpid() returns)                  │
+│     - Detect CGI termination (pipe EOF + waitpid() returns)                 │
 │     - Parse CGI output: extract headers, determine body                     │
 │     - If no Content-Length from CGI, body ends at EOF                       │
 │     - Build HTTP/1.1 response from CGI output                               │
@@ -685,7 +685,7 @@ Content-Type: text/plain
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                        CONFIGURATION HIERARCHY                               │
+│                        CONFIGURATION HIERARCHY                              │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
 │  webserv.conf                                                               │
@@ -696,34 +696,34 @@ Content-Type: text/plain
 │  │   ├── error_page 404 /errors/404.html;# Custom error page                │
 │  │   ├── error_page 500 502 /errors/50x.html;# Multiple codes               │
 │  │   ├── access_log /var/log/webserv/access.log;# Access log path           │
-│  │   ├── error_log /var/log/webserv/error.log;# Error log path             │
-│  │   ├── debug_log /var/log/webserv/debug.log;# Debug log path             │
-│  │   ├── timeout 30s;            # Connection timeout                        │
-│  │   ├── cgi_timeout 10s;       # CGI timeout                                │
-│  │   │                                                                       │
-│  │   ├── location / {            # Location Block (root)                   │
-│  │   │   ├── methods GET POST;   # Allowed HTTP methods                      │
-│  │   │   ├── root /var/www/html; # Document root                             │
-│  │   │   ├── index index.html;   # Default index file                        │
-│  │   │   ├── autoindex off;     # Directory listing                          │
-│  │   │   └── upload_path /var/www/uploads;# Upload directory               │
-│  │   │                                                                       │
-│  │   ├── location /kapouet {      # Location Block (prefix /kapouet)         │
-│  │   │   ├── methods GET;        # Only GET allowed                          │
-│  │   │   ├── root /tmp/www;      # Filesystem root for this route            │
+│  │   ├── error_log /var/log/webserv/error.log;# Error log path              │
+│  │   ├── debug_log /var/log/webserv/debug.log;# Debug log path              │
+│  │   ├── timeout 30s;            # Connection timeout                       │
+│  │   ├── cgi_timeout 10s;       # CGI timeout                               │
+│  │   │                                                                      │
+│  │   ├── location / {            # Location Block (root)                    │
+│  │   │   ├── methods GET POST;   # Allowed HTTP methods                     │
+│  │   │   ├── root /var/www/html; # Document root                            │
+│  │   │   ├── index index.html;   # Default index file                       │
+│  │   │   ├── autoindex off;     # Directory listing                         │
+│  │   │   └── upload_path /var/www/uploads;# Upload directory                │
+│  │   │                                                                      │
+│  │   ├── location /kapouet {      # Location Block (prefix /kapouet)        │
+│  │   │   ├── methods GET;        # Only GET allowed                         │
+│  │   │   ├── root /tmp/www;      # Filesystem root for this route           │
 │  │   │   ├── autoindex on;      # Enable directory listing                  │
-│  │   │   ├── return 301 /new/path;# HTTP redirect                            │
-│  │   │   └── client_max_body_size 5M;# Override global limit                 │
-│  │   │                                                                       │
+│  │   │   ├── return 301 /new/path;# HTTP redirect                           │
+│  │   │   └── client_max_body_size 5M;# Override global limit                │
+│  │   │                                                                      │
 │  │   └── location ~ \.(php|py)$ { # CGI Location (extension match)          │
-│  │       ├── methods GET POST;   # CGI methods                               │
+│  │       ├── methods GET POST;   # CGI methods                              │
 │  │       ├── cgi_extension .php;# Trigger extension                         │
-│  │       ├── cgi_path /usr/bin/php-cgi;# Interpreter path                    │
+│  │       ├── cgi_path /usr/bin/php-cgi;# Interpreter path                   │
 │  │       └── root /var/www/cgi; # CGI scripts root                          │
-│  │                                                                           │
-│  └── server {                    # Server Block 2 (different port)            │
+│  │                                                                          │
+│  └── server {                    # Server Block 2 (different port)          │
 │      ├── listen 127.0.0.1:9090;                                             │
-│      └── ...                                                                 │
+│      └── ...                                                                │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
