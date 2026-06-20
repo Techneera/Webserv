@@ -61,7 +61,7 @@ The architecture prioritizes resilience: the server must remain operational unde
 │           │                      │                          │                │
 │           ▼                      ▼                          ▼                │
 │  ┌─────────────────────────────────────────────────────────────────────────┐ │
-│  │                        EVENT LOOP (epoll_wait)                         │  │
+│  │                        EVENT LOOP (epoll_wait)                          │ │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐  │ │
 │  │  │  Listener   │  │   Client    │  │   Client    │  │  CGI Pipe      │  │ │
 │  │  │  Sockets    │  │  Sockets    │  │  Sockets    │  │  (read/write)  │  │ │
@@ -75,18 +75,18 @@ The architecture prioritizes resilience: the server must remain operational unde
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────────┐  │ │
 │  │  │   Parser    │  │   Router    │  │   Handler   │  │   Responder    │  │ │
 │  │  │  (HTTP/1.1) │  │  (Location  │  │  (Static/   │  │  (Buffer mgmt) │  │ │
-│  │  │             │  │   match)    │  │   CGI/Upload)│  │                │ │ │
+│  │  │             │  │   match)    │  │  CGI/Upload)│  │                │  │ │
 │  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────────┘  │ │
 │  └─────────────────────────────────────────────────────────────────────────┘ │
 │                                    │                                         │
 │                                    ▼                                         │
 │  ┌─────────────────────────────────────────────────────────────────────────┐ │
 │  │                        CGI SUBPROCESSES (fork/execve)                   │ │
-│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                      │ │
-│  │  │  php-cgi    │  │  python3    │  │  other      │                      │ │
-│  │  │  (stdin)    │  │  (stdin)    │  │  interpreters                      │ │
-│  │  │  (stdout)   │  │  (stdout)   │  │  via shebang)                      │ │
-│  │  └─────────────┘  └─────────────┘  └─────────────┘                      │ │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────┐                     │ │
+│  │  │  php-cgi    │  │  python3    │  │  other       │                     │ │
+│  │  │  (stdin)    │  │  (stdin)    │  │  interpreters│                     │ │
+│  │  │  (stdout)   │  │  (stdout)   │  │  via shebang)│                     │ │
+│  │  └─────────────┘  └─────────────┘  └──────────────┘                     │ │
 │  └─────────────────────────────────────────────────────────────────────────┘ │
 └──────────────────────────────────────────────────────────────────────────────┘
 ```
