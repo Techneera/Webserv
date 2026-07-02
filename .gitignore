@@ -70,3 +70,5 @@ Testing/
 
 # documentation files
 CPlusPlus/
+.clangd
+compile_flags.txt
