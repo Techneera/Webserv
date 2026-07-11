@@ -25,3 +25,7 @@ A series of base documents and support documents. It serves as an archive for th
 
 [RFC 9112: STD 99: HTTP/1.1](https://www.rfc-editor.org/info/rfc9112/)
 
+## Books
+
+- "Unix Network Programming, Volume 1: The Sockets Networking API, 3rd Edition" by W. Richard Stevens, Bill Fenner, Andrew M. Rudoff (Ch. 1 - Ch.4: Sockets, Ch. 6: Debugging)
+- "High Performance Browser Networking" by Ilya Grigorik (Ch. 4: Transport Layer Security, Ch. 11: HTTP)
