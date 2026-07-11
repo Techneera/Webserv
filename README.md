@@ -13,7 +13,7 @@ Clone repository
 
 ``` bash
 make
-
+```
 ## Resources
 
 Refer to the documentation folder.
