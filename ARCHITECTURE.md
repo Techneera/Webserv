@@ -34,6 +34,7 @@
 14. [Signal Handling](#14-signal-handling)
 15. [Deployment & Execution](#15-deployment--execution)
 16. [Appendices](#16-appendices)
+17. [Diagram]https://link.excalidraw.com/readonly/64f70DZjQ2sosyvu5zbD?darkMode=true
 
 ---
 
