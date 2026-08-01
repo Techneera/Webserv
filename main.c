@@ -51,7 +51,7 @@ int main(void)
     server_addr.sin_addr.s_addr = INADDR_ANY;
     server_addr.sin_port = htons(PORT);
 
-    if ((bind(server_socket), (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+    if ((bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr))) < 0)
     {
         perror("Failed to bind socket address!\n");
         close(server_socket);

@@ -1,0 +1,19 @@
+[
+  {
+    "arguments": [
+      "/usr/bin/cc",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-I",
+      "includes/",
+      "-c",
+      "-o",
+      "server.o",
+      "server.c"
+    ],
+    "directory": "/home/avieira-42/repos/42/milestone_5/webserv",
+    "file": "/home/avieira-42/repos/42/milestone_5/webserv/server.c",
+    "output": "/home/avieira-42/repos/42/milestone_5/webserv/server.o"
+  }
+]
