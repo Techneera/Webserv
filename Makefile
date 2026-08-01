@@ -1,6 +1,6 @@
 NAME = miniserver
 COMPILER = cc
-FLAGS = -Wall -Wextra -Werror
+FLAGS = -Wall -Wextra -Werror -g
 SRCS = main.c
 OBJS = $(SRCS:.c=.o)
 INCLUDES = includes/
