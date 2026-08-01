@@ -1,0 +1,526 @@
+SOCKET (sys/socket.h): A socket is kind of a bidirectional
+    pipe that, instead of connecting two processes on the same
+    computer, it connects two processes on different computers
+    this allows the two ends of the communication to share
+    their infos and create a reality that uses both endpoint's
+    perspecitve.
+
+A. int socket(int domain, int type, int protocol);
+
+    1. socket() allows the user to create an endpoint
+        for communication that returns a file descriptor.
+    
+    2. domain specifies a communication domain to select the
+        protocol family which will be used for communication:
+        
+        Name                Purpose
+    
+        AF_UNIX             Local Communication
+    
+        AF_LOCAL            Local Communication
+    
+        AF_INET             IPv4 Internet Protocols
+    
+        AF_AX25             Amateur radio AX.25 protocol
+    
+        AF_IPX              IPX - Novell protocols
+    
+        AF_APPLETALK        AppleTalk
+    
+        AF_X25              ITU-T X.25 / ISO/IEC 8208 protocol      
+    
+        AF_INET6            IPv6 Internet protocols                 
+    
+        AF_DECnet           DECet protocol sockets
+    
+        AF_KEY              Key  management protocol, originally de‐
+                            veloped for usage with IPsec
+    
+        AF_NETLINK          Kernel user interface device            
+    
+        AF_PACKET           Low-level packet interface              
+    
+        AF_RDS              Reliable Datagram Sockets (RDS) protocol
+    
+        AF_PPPOX            Generic PPP transport layer, for setting
+                            up L2 tunnels (L2TP and PPPoE)
+    
+        AF_LLC              Logical link control  (IEEE  802.2  LLC)
+                            protocol
+    
+        AF_IB               InfiniBand native addressing
+    
+        AF_LLC              Logical link control  (IEEE  802.2  LLC)
+                            protocol
+    
+        AF_IB               InfiniBand native addressing
+    
+        AF_MPLS             Multiprotocol Label Switching
+    
+        AF_CAN              Controller  Area  Network automotive bus
+                            protocol
+    
+        AF_TIPC             TIPC, "cluster domain sockets" protocol
+    
+        AF_BLUETOOTH        Bluetooth low-level socket protocol
+    
+        AF_ALG              Interface to kernel crypto API
+    
+        AF_VSOCK            VSOCK  (originally  "VMWare   VSockets")
+                            protocol for hypervisor-guest communica‐
+                            tion
+    
+        AF_KCM              KCM  (kernel connection multiplexer) in‐
+                            terface
+    
+        AF_XDP              XDP (express data path) interface
+                        (SEE man address_families)
+        
+    3.  The type specifies the communication semantics:
+    
+        Name                Purpose
+    
+        SOCK_STREAM         Provides   sequenced,  reliable,  two-way,
+                            connection-based byte streams.  An out-of-
+                            band data transmission  mechanism  may  be
+                            supported.
+    
+        SOCK_DGRAM          Supports  datagrams (connectionless, unre‐
+                            liable  messages  of   a   fixed   maximum
+                            length).
+    
+        SOCK_SEQPACKET      Provides  a  sequenced,  reliable, two-way
+                            connection-based  data  transmission  path
+                            for  datagrams  of fixed maximum length; a
+                            consumer is required  to  read  an  entire
+                            packet with each input system call.
+    
+        SOCK_RAW            Provides raw network protocol access.
+    
+        SOCK_RDM            Provides  a  reliable  datagram layer that
+                            does not guarantee ordering.
+    
+        SOCK_PACKET         Obsolete and should not  be  used  in  new
+                            programs; see packet(7).
+    
+        These serve a second purpose - to modify the behavior of socket()
+            by including the bitwise OR of any of the following variables:
+    
+        Name                Purpose
+    
+        SOCK_NONBLOCK       Set the O_NONBLOCK file status flag on the
+                            open file description  (see  open(2))  re‐
+                            ferred to by the new file descriptor.  Us‐
+                            ing  this  flag  saves  extra calls to fc‐
+                            ntl(2) to achieve the same result.
+        
+        SOCK_CLOEXEC        Set the close-on-exec (FD_CLOEXEC) flag on
+                            the new file descriptor.  See the descrip‐
+                            tion of the O_CLOEXEC flag in open(2)  for
+                            reasons why this may be useful.
+    
+    4. The protocol specifies a particular protocol to be used with the
+        socket. Usually only a single protocol supports a particular
+        socket type within a given protocol family, being the protocol
+        specified as 0. Sometimes multiple protocols exist, which
+        makes it so we can specify it as the function argument.
+    
+    5. On Success, it returns a file descriptor fo the new socket.
+        On error, it returns -1, and errno is set to indicate it:
+    
+        EACCES Permission to create a socket of the specified type and/or pro‐
+               tocol is denied.
+        
+        EAFNOSUPPORT
+               The  implementation does not support the specified address fam‐
+               ily.
+        
+        EINVAL Unknown protocol, or protocol family not available.
+        
+        EINVAL Invalid flags in type.
+        
+        EMFILE The per-process limit on the number of  open  file  descriptors
+               has been reached.
+        
+        ENFILE The  system-wide  limit  on  the total number of open files has
+               been reached.
+        
+        ENOBUFS or ENOMEM
+               Insufficient memory is available.  The socket cannot be created
+               until sufficient resources are freed.
+        
+        EPROTONOSUPPORT
+               The protocol type or the specified protocol  is  not  supported
+               within this domain.
+    
+B. ssize_t send(int sockfd, const void buf[.len], size_t len, int flags);
+
+    1. the send() function transmits a message to another socket, only when
+        the only socket is in the connected state.
+    
+    2. socketfd is the file descriptor of the sending socket
+
+    3. buf is bytes group to be sent
+
+    4. len is the amount of bytes to be sent
+
+    5. flags is the bitwise OR of zero or more of the following flags:
+        
+    MSG_CONFIRM (since Linux 2.3.15)
+           Tell the link layer that forward progress happened: you  got  a
+           successful  reply  from  the  other  side.   If  the link layer
+           doesn't get this it will regularly reprobe the neighbor  (e.g.,
+           via  a  unicast  ARP).   Valid  only on SOCK_DGRAM and SOCK_RAW
+           sockets and currently implemented only for IPv4 and IPv6.   See
+           arp(7) for details.
+    
+    MSG_DONTROUTE
+           Don't  use a gateway to send out the packet, send to hosts only
+           on directly connected networks.  This is usually used  only  by
+           diagnostic  or routing programs.  This is defined only for pro‐
+           tocol families that route; packet sockets don't.
+    
+    MSG_DONTWAIT (since Linux 2.2)
+           Enables nonblocking operation; if the  operation  would  block,
+           EAGAIN  or  EWOULDBLOCK is returned.  This provides similar be‐
+           havior to setting the O_NONBLOCK flag (via the fcntl(2) F_SETFL
+           operation), but differs in that MSG_DONTWAIT is a per-call  op‐
+           tion, whereas O_NONBLOCK is a setting on the open file descrip‐
+           tion  (see open(2)), which will affect all threads in the call‐
+           ing process as well as other processes that hold file  descrip‐
+           tors referring to the same open file description.
+    
+    MSG_EOR (since Linux 2.2)
+           Terminates  a  record  (when  this  notion is supported, as for
+           sockets of type SOCK_SEQPACKET).
+    
+    MSG_MORE (since Linux 2.4.4)
+           The caller has more data to send.  This flag is used  with  TCP
+           sockets to obtain the same effect as the TCP_CORK socket option
+           (see  tcp(7)), with the difference that this flag can be set on
+           a per-call basis.
+    
+           Since Linux 2.6, this flag is also supported for  UDP  sockets,
+           and informs the kernel to package all of the data sent in calls
+           with  this flag set into a single datagram which is transmitted
+           only when a call is performed that does not specify this  flag.
+           (See also the UDP_CORK socket option described in udp(7).)
+    
+    MSG_NOSIGNAL (since Linux 2.2)
+           Don't  generate  a  SIGPIPE signal if the peer on a stream-ori‐
+           ented socket has closed the connection.   The  EPIPE  error  is
+           still returned.  This provides similar behavior to using sigac‐
+           tion(2)  to ignore SIGPIPE, but, whereas MSG_NOSIGNAL is a per-
+           call feature, ignoring SIGPIPE sets a  process  attribute  that
+           affects all threads in the process.
+    
+    MSG_OOB
+           Sends  out-of-band  data  on  sockets  that support this notion
+           (e.g., of type SOCK_STREAM); the underlying protocol must  also
+           support out-of-band data.
+    
+    MSG_FASTOPEN (since Linux 3.7)
+           Attempts TCP Fast Open (RFC7413) and sends data in the SYN like
+           a  combination of connect(2) and write(2), by performing an im‐
+           plicit connect(2) operation.   It  blocks  until  the  data  is
+           buffered  and  the handshake has completed.  For a non-blocking
+           socket, it returns the number of bytes buffered and sent in the
+           SYN packet.  If the cookie is not available locally, it returns
+           EINPROGRESS, and sends a SYN with a Fast  Open  cookie  request
+           automatically.   The  caller needs to write the data again when
+           the socket is connected.  On errors, it sets the same errno  as
+           connect(2) if the handshake fails.  This flag requires enabling
+           TCP Fast Open client support on sysctl net.ipv4.tcp_fastopen.
+
+    6. On success, these calls return the number of bytes sent. On error,
+        -1 is returned, and errno indicates the error:
+
+    EACCES (For UNIX domain sockets, which  are  identified  by  pathname)
+           Write  permission  is denied on the destination socket file, or
+           search permission is denied for one of the directories the path
+           prefix.  (See path_resolution(7).)
+    
+           (For UDP sockets) An  attempt  was  made  to  send  to  a  net‐
+           work/broadcast address as though it was a unicast address.
+    
+    EAGAIN or EWOULDBLOCK
+           The  socket  is  marked nonblocking and the requested operation
+           would block.  POSIX.1-2001 allows either error to  be  returned
+           for this case, and does not require these constants to have the
+           same  value,  so  a  portable application should check for both
+           possibilities.
+    
+    EAGAIN (Internet domain datagram sockets) The socket  referred  to  by
+           sockfd  had  not  previously been bound to an address and, upon
+           attempting to bind it to an ephemeral port, it  was  determined
+           that all port numbers in the ephemeral port range are currently
+           in   use.   See  the  discussion  of  /proc/sys/net/ipv4/ip_lo‐
+           cal_port_range in ip(7).
+    
+    EALREADY
+           Another Fast Open is in progress.
+    
+    EBADF  sockfd is not a valid open file descriptor.
+    
+    ECONNRESET
+           Connection reset by peer.
+    
+    EDESTADDRREQ
+           The socket is not connection-mode, and no peer address is set.
+    
+    EFAULT An invalid user space address was specified for an argument.
+    
+    EINTR  A signal occurred before any data  was  transmitted;  see  sig‐
+           nal(7).
+    
+    EINVAL Invalid argument passed.
+    
+    EISCONN
+           The  connection-mode socket was connected already but a recipi‐
+           ent was specified.  (Now either this error is returned, or  the
+           recipient specification is ignored.)
+    
+    EMSGSIZE
+           The  socket  type requires that message be sent atomically, and
+           the size of the message to be sent made this impossible.
+    
+    ENOBUFS
+           The output queue for a network interface was full.  This gener‐
+           ally indicates that the interface has stopped sending, but  may
+           be  caused  by  transient congestion.  (Normally, this does not
+           occur in Linux.  Packets are just silently dropped when  a  de‐
+           vice queue overflows.)
+    
+    ENOMEM No memory available.
+    
+    ENOTCONN
+           The socket is not connected, and no target has been given.
+    
+    ENOTSOCK
+           The file descriptor sockfd does not refer to a socket.
+    
+    EOPNOTSUPP
+           Some  bit in the flags argument is inappropriate for the socket
+           type.
+    
+    EPIPE  The local end has been  shut  down  on  a  connection  oriented
+           socket.   In this case, the process will also receive a SIGPIPE
+           unless MSG_NOSIGNAL is set.
+    
+typedef uint    sa_family;
+typedef int32_t socklen_t;
+struct sockaddr
+{
+    sa_family_t     sa_family;      /* Address family */
+    char            sa_data[14];      /* Socket address */
+};
+- struct sockaddr is used to cast the structure pointer passed in adddr in
+    order to avoid compiler warnings
+
+C. int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);
+    
+    1. When a socket is created with socket(), it exists in a name space,
+        or address family, but has no address assigned to it. bind()
+        assigns the address specified by addr to the socket referred to
+        by the file descriptor sockfd.
+    
+    2. sockfd is the file descriptor of the socket to bid the addr to.
+
+    3. addr is the address to be bound to the socket(holding the address
+        structure).
+
+    4. addrlen specifies the size, in bytes, of the address structure
+        pointed to by addr
+
+    5. Returns 0 on success and -1 on error, the errors can be:
+
+    EACCES The address is protected, and  the  user
+           is not the superuser.
+    
+    EADDRINUSE
+           The given address is already in use.
+    
+    EADDRINUSE
+           (Internet  domain sockets) The port num‐
+           ber was specified as zero in the  socket
+           address  structure, but, upon attempting
+           to bind to an ephemeral port, it was de‐
+           termined that all port  numbers  in  the
+           ephemeral  port  range  are currently in
+           use.     See    the    discussion     of
+           /proc/sys/net/ipv4/ip_local_port_range
+           ip(7).
+    
+    EBADF  sockfd is not a valid file descriptor.
+    
+    EINVAL The  socket  is  already bound to an ad‐
+           dress.
+    
+    EINVAL addrlen is wrong, or addr is not a valid
+           address for this socket's domain.
+    
+    ENOTSOCK
+           The file descriptor sockfd does not  re‐
+           fer to a socket.
+    
+    The  following  errors are specific to UNIX do‐
+    main (AF_UNIX) sockets:
+    
+    EACCES Search permission is denied on a  compo‐
+           nent  of  the  path  prefix.   (See also
+           path_resolution(7).)
+    
+    EADDRNOTAVAIL
+           A nonexistent interface was requested or
+           the requested address was not local.
+    
+    EFAULT addr points outside the user's  accessi‐
+           ble address space.
+    
+    ELOOP  Too many symbolic links were encountered
+           in resolving addr.
+    
+    ENAMETOOLONG
+           addr is too long.
+    
+    ENOENT A  component  in the directory prefix of
+           the socket pathname does not exist.
+    
+    ENOMEM Insufficient kernel  memory  was  avail‐
+           able.
+    
+    ENOTDIR
+           A  component of the path prefix is not a
+           directory.
+    
+    EROFS  The socket inode would reside on a read-
+
+
+D.  int listen(int sockfd, int backlog);
+    
+    1. the listen() function marks the socket referred to by sockfd
+        as a passive socket, that is, as a socket that will be used
+        to accept incoming connection requests using accept.
+    
+    2. sockfd is a file descriptor that refers to a socket of type
+        SOCK_STREAM or SOCK_SEQPACKET.
+
+    3. backlog defines the maximum length to which the queue of
+        pending connectinos for sockfd may grow. If a connection
+        request arrives when the queue is full, the client may
+        receive an error with an indication of ECONNREFUSED or, if
+        the underlying protocol supports retransmission, the
+        request may be ignored so that a later reattempt at a
+        connection succeeds.
+
+    4. Returns 0 on succsess and -1 on error, the errors being:
+
+    EADDRINUSE
+            Another socket is already listening on the same port.
+    
+    EADDRINUSE
+           (Internet domain sockets) The socket referred to by sockfd
+           had not previously been bound to an address and, upon  at‐
+           tempting  to  bind  it to an ephemeral port, it was deter‐
+           mined that all port numbers in the  ephemeral  port  range
+           are   currently   in   use.    See   the   discussion   of
+           /proc/sys/net/ipv4/ip_local_port_range in ip(7).
+    
+    EBADF  The argument sockfd is not a valid file descriptor.
+    
+    ENOTSOCK
+           The file descriptor sockfd does not refer to a socket.
+    
+    EOPNOTSUPP
+           The socket is not of a type that supports the listen() op‐
+           eration.
+
+E. int accept(int sockfd, struct sockaddr *_Nullable restruct addr,
+                socklen_t *_Nullable restruct addrlen) ;
+    
+    1. The accept() function is used with connection-based socket
+        types SOCK_STREAM and SOCK_SEQPACKET. It extracts the first
+        connection request on the queue of pending connections
+        for the listening socket.
+
+    2. sockfd creates a new connected socket and returns a new file
+        descriptor referring to that socket. The neew created socket
+        is not in the listening state. The original sockfd is
+        unaffected by this call
+
+    3. sockfd is a socket that has been created with socket(), bound
+        to a local address with bind(), and listening for connectinos
+        after a listen()
+
+    4. addr is a pointer to a sockaddr structure. This strucutre is
+        filled in with the address of the peer socket, as known
+        to the communications layer. The exact format of the address
+        returned addr is determined by the socket's address family.
+        When addr is NULL, nothing is filled in, and addrlen is not
+        used and should also be NULL
+
+    5. addrlen is a value-result argument: the caller must
+        initialize it to contain the size(in bytes) of the
+        structure pointed to by addr. on return it will contain
+        the actual size of the peer address
+
+    6. If no pending connetions are present on the queue, and
+        the socket is not marked as nonblocking, accept() blocks
+        the caller until a connection is present. If the socket
+        is marked nonblocking and no pending connections are
+        present on the queue, accept() fails with EAGAIN or
+        EWOULDBLOCK
+
+    7. returns, on success, a positive file descriptor for the socket
+        returns, on error, -1, and the addrlen is unchanged.
+        The errors are:
+
+    EAGAIN or EWOULDBLOCK
+           The  socket  is  marked nonblocking and no connections are
+           present to be accepted.  POSIX.1-2001 and POSIX.1-2008 al‐
+           low either error to be returned for this case, and do  not
+           require  these  constants  to  have  the  same value, so a
+           portable application should check for both possibilities.
+    
+    EBADF  sockfd is not an open file descriptor.
+    
+    ECONNABORTED
+           A connection has been aborted.
+    
+    EFAULT The addr argument is not in a writable part  of  the  user
+           address space.
+    
+    EINTR  The  system  call  was  interrupted  by  a signal that was
+           caught before a valid connection arrived; see signal(7).
+    
+    EINVAL Socket is not listening for connections, or addrlen is in‐
+           valid (e.g., is negative).
+    
+    EINVAL (accept4()) invalid value in flags.
+    
+    EMFILE The per-process limit on the number of open file  descrip‐
+           tors has been reached.
+    
+    ENFILE The  system-wide  limit  on the total number of open files
+           has been reached.
+    
+    ENOBUFS
+    ENOMEM Not enough free memory.  This often means that the  memory
+           allocation  is limited by the socket buffer limits, not by
+           the system memory.
+    
+    ENOTSOCK
+           The file descriptor sockfd does not refer to a socket.
+    
+    EOPNOTSUPP
+           The referenced socket is not of type SOCK_STREAM.
+    
+    EPERM  Firewall rules forbid connection.
+    
+    EPROTO Protocol error.
+    
+    In addition, network errors for the new socket and as defined for
+    the protocol may be returned.  Various Linux kernels  can  return
+    other  errors  such  as  ENOSR, ESOCKTNOSUPPORT, EPROTONOSUPPORT,
+    ETIMEDOUT.  The value ERESTARTSYS may be seen during a trace.
+    
