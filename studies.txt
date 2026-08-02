@@ -523,4 +523,15 @@ E. int accept(int sockfd, struct sockaddr *_Nullable restruct addr,
     the protocol may be returned.  Various Linux kernels  can  return
     other  errors  such  as  ENOSR, ESOCKTNOSUPPORT, EPROTONOSUPPORT,
     ETIMEDOUT.  The value ERESTARTSYS may be seen during a trace.
+
+F. ssize_t recv(int sockfd, void buf[.len], size_t len, int flags);
     
+    1. the recv() function is used to receive messages from a socket.
+        It may be used to receive data on both connectionless and
+        connection-oriented sockets. recv() is like read but with
+        flags.
+    
+G. htons(uint16_t hotshort);
+    
+    1. The htons() function converts the unsigned short integer
+        hotshort from host byte order to network byte order.
