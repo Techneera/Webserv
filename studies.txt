@@ -1,3 +1,14 @@
+SERVER LOGIC: 
+    
+    1. Wait for a TCP connection.
+    2. Read an HTTP Request.
+    3. Parse it.
+    4. Decide what the client wants.
+    5. Build the correct HTTP response.
+    6. Send it.
+    7. Close or keep the connection.
+
+
 SOCKET (sys/socket.h): A socket is kind of a bidirectional
     pipe that, instead of connecting two processes on the same
     computer, it connects two processes on different computers
