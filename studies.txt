@@ -546,3 +546,28 @@ G. htons(uint16_t hotshort);
     
     1. The htons() function converts the unsigned short integer
         hotshort from host byte order to network byte order.
+
+
+COMMON GATEWAY INTERFACE
+
+    1. It's an interface specification that enables web servers
+        to execute an external program to process HTTP or HTTPS
+        user requests.
+       These programs are often written in a scripting language
+        and are commonly referred to as CGI scripts.
+       When a web user submits a web form on a web page that
+        uses CGI, the form's data is sent to the web server
+        within an HTTP request with a URL denoting a CGI script.
+        The web server then launches the CGI script in a new
+        computer process, passing the form data to it. The CGI
+        script passes its output, usually in the form of HTML,
+        to the webserver and the server relays it back to the
+        browser as its response to the browser's request.
+    2. It allows any program that can read from standard input
+        to communicate with the server in the form of HTML.
+    3. CGI is effectively is a set of rules and functionalities
+        that allow the webserver process to communicate with
+        any other external process that the clients needs to
+        use indirectly
+    4. https://www.rfc-editor.org/info/rfc3875/
+
