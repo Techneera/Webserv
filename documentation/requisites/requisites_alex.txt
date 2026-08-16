@@ -2,6 +2,8 @@ WEBSERVER
 
     SHALL...
 
+    ...remain operational at all times.
+
     ...receive communication attempt from the browser/request
         (parsing HTTP)
 
@@ -113,40 +115,40 @@ Must contain...
 
     ...Makefile
 
-Extras:
+EXTRAS:
 
-A. Please read the RFCs defining the HTTP protocol, and perform tests
-with telnet and NGINX before starting this project.
-Although you are not required to implement the entire RFCs, reading
-it will help you develop the required features.
-The HTTP 1.0 is suggested as a reference point, but not enforced.
-
-B. I/O that can wait for data (sockets, pipes/FIFOs, etc.) must be
-non-blocking and driven by a single poll() (or equivalent). Calling
-read/recv or write/send on these descriptors without prior readiness will result in a grade of 0. Regular disk files are exempt.
-
-C. We deliberately chose to offer only a subset of the HTTP RFC. In this
-context, the virtual host feature is considered out of scope. But
-you are allowed to implement it if you want.
-
-D.If you have a question about a specific behaviour, you can compare
-your program’s behaviour with NGINX’s.
-We have provided a small tester. Using it is not mandatory if
-everything works fine with your browser and tests, but it can help
-you find and fix bugs.
-
-E.Resilience is key.
-Your server must remain operational at all times.
-
-F.Do not test with only one program. Write your tests in a more
-suitable language, such as Python or Golang, among others, even
-in C or C++ if you prefer.
-
-G. You can take inspiration from the ’server’ section of the NGINX
-configuration file.
-
-H. If you have a question about a specific behaviour, you can compare
-your program’s behaviour with NGINX’s.
-We have provided a small tester. Using it is not mandatory if
-everything works fine with your browser and tests, but it can help
-you find and fix bugs.
+    A. Please read the RFCs defining the HTTP protocol,
+        and perform tests with telnet and NGINX before
+        starting this project.
+        Although you are not required to implement the
+        entire RFCs, reading it will help you develop the
+        required features.
+        The HTTP 1.0 is suggested as a reference point,
+        but not enforced.
+    
+    B. I/O that can wait for data (sockets, pipes/FIFOs,
+        etc.) must be non-blocking and driven by a single
+        poll() (or equivalent). Calling read/recv or
+        write/send on these descriptors without prior
+        readiness will result in a grade of 0.
+        Regular disk files are exempt.
+    
+    C. We deliberately chose to offer only a subset of
+        the HTTP RFC. In this context, the virtual host
+        feature is considered out of scope. But
+        you are allowed to implement it if you want.
+    
+    D.If you have a question about a specific behaviour,
+        you can compare your program’s behaviour with
+        NGINX’s. We have provided a small tester.
+        Using it is not mandatory if everything works
+        fine with your browser and tests, but it can
+        help you find and fix bugs.
+    
+    F.Do not test with only one program. Write your tests
+        in a more suitable language, such as Python or
+        Golang, among others, even in C or C++ if you
+        prefer.
+    
+    G. You can take inspiration from the ’server’ section
+        of the NGINX configuration file.
