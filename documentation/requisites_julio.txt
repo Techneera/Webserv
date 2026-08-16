@@ -1,0 +1,108 @@
+
+The webserv shall be written in C++ 98
+
+WEBSERV
+
+	SHALL...
+    ... use a configuration file
+        when the program starts if a configuration
+        file is provided as an argument or it is
+        in a default path otherwise terminate with
+        an error
+
+	... ignore errno
+	    after a read or write operation
+	    if any of these functions returns an error
+	    otherwise proceed normally
+
+	... remain non-blocking
+        when multiple clients are connected
+
+	... handle client disconnections
+	    when necessary
+
+	... use only 1 poll or equivalent
+	    when any I/O operation happens between
+        client and server, including listen()
+
+	... perform I/O operations without poll()
+	    when any read or write operation is necessary
+	    if it is on regular disk files
+
+    ... monitor both reading and writing
+        simultaneously
+
+	... only perform a read or write operation
+        after going through poll() or equivalent
+
+	... use any associated macro or helper function
+	    when using poll() or equivalent call
+
+    ... be compatible with standards web browsers
+
+	... provide accurate HTTP responses and status
+        codes without hanging indefinetely
+	    when a request is made to the server
+
+	... serve default error pages
+	    when there is an HTTP error
+	    if no custom error pages are provided
+
+	... use fork() only for CGI
+	    when this functionality is used
+
+	... serve a fully static website
+	    when a client requests for it
+
+	... store files
+	    when a client upload them
+
+	... handle GET request method
+	    when a client makes a GET request
+	    if the request is valid as per the RFC
+	    otherwise provide a proper error response
+
+	... handle POST request method
+	    when a client makes a POST request
+	    if the request is valid as per the RFC
+	    otherwise provide a proper error response
+
+	... handle DELETE request method
+    	when a client makes a DELETE request
+    	if the request is valid as per the RFC
+    	otherwise provide a proper error response
+    
+	... listen to multiple ports and deliver content
+    	when the corresponding service is needed
+    	if the correct port is specified in the
+        configuration othewise provide an internal
+        server error response
+
+
+CONFIGURATION FILE REQUIREMENTS
+
+    SHALL...
+    ... define all the interface:port pairs the server
+        will listen to
+
+    ... provide setup for default error pages
+
+    ... provide maximum allowed size for client request
+        bodies
+
+    ... rules on a route for a website as defined below
+	    List of accepted methods on the route
+	    HTTP redirection
+	    Directory where the requested file should be
+        located
+	    Enabling or disabling directory listing.
+	    Default file to serve when the requested resource
+        is a directory.
+        Uploading files from the clients to the server is
+        authorized, and storage location is provided.
+        Execution of CGI based on file extension
+
+GENERAL
+    
+    configuration files and default files shall be
+        provided to prove every feature works
