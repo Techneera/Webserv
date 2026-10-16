@@ -36,6 +36,6 @@ debug: all
 _%: fclean
 	@mkdir bin
 	@$(MAKE) FLAGS="-g -Wall -Wextra" MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=bin/%)
-	@echo "compiling module $(@)"
+	rm -rf src/*.o
 
 .PHONY: all clean fclean re
