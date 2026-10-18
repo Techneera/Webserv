@@ -1,6 +1,6 @@
 NAME = webserv
 COMPILER = c++
-FLAGS = -Wall -Wextra -Werror
+FLAGS = -Wall -Wextra -Werror -std=c++98
 MAIN = main.cpp
 SCRIPTS = $(MAIN)
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
@@ -9,14 +9,14 @@ OBJS = $(SRCS:.cpp=.o)
 all: $(NAME)
 
 %.o: %.cpp
-	$(COMPILER) $(FLAGS) -I $(INCLUDES) -c $< -o $@
+	$(COMPILER) $(FLAGS) -c $< -o $@
 
 .SECONDEXPANSION:
 $(NAME): $$(OBJS)
 	$(COMPILER) $(FLAGS) $(OBJS) -o $@
 
 clean:
-	rm -rf $(OBJS)
+	rm -rf $(OBJS) src/*.o
 	rm -rf bin
 
 fclean: clean
