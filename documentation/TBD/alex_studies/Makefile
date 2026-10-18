@@ -1,13 +1,13 @@
-NAME = miniserver
-COMPILER = cc
-FLAGS = -Wall -Wextra -Werror -g
-SRCS = main.c
-OBJS = $(SRCS:.c=.o)
+NAME = miniserver/miniserver
+COMPILER = c++
+FLAGS = -std=c++98 -Wall -Wextra -Werror -g
+SRCS = main.cpp
+OBJS = $(SRCS:.cpp=.o)
 INCLUDES = includes/
 
 all: $(NAME)
 
-%.o: %.c
+%.o: %.cpp
 	$(COMPILER) $(FLAGS) -I $(INCLUDES) -c $< -o $@
 
 $(NAME): $(OBJS)

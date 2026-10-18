@@ -1,0 +1,39 @@
+*
+{
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+body
+{
+	width: 100vw;
+	height: 100vh;
+	border: 1px solid blue;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background-image: url("background.jpg");
+	background-repeat: no-repeat;
+	background-size:cover;
+}
+
+#buttons
+{
+	display: inline-block;
+	border: 1px solid red;
+}
+
+#alex, #flavia
+{
+	padding: 10px 50px 10px 50px;
+}
+
+#alex
+{
+	margin: 0px 5vw 0px 0px;
+}
+#flavia
+{
+	margin: 0px 0px 0px 5vw;
+}
