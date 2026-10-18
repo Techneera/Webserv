@@ -5,7 +5,6 @@ MAIN = main.cpp
 SCRIPTS = $(MAIN)
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
 OBJS = $(SRCS:.cpp=.o)
-INCLUDES = include/
 
 all: $(NAME)
 
