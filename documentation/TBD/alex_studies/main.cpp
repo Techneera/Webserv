@@ -6,10 +6,24 @@
 #include <cstring>
 #include <unistd.h>
 #include <iostream>
+#include <fcntl.h>
+#include <signal.h>
 
 #define BUFFER_SIZE 1024
 
-const int PORT[] = {8000, 8080, 8160};
+int PORT = 9000;
+volatile sig_atomic_t   interrupt = 0;
+
+void signalHandler_Ctrl_C(int sig)
+{
+    (void)sig;
+    std::cerr << "CTRL-C called\n";
+}
+void signalHandler(int signalCode)
+{
+    std::cerr << "Server Interrupted by SIGINT!\n";
+    interrupt = signalCode;
+}
 
 /* Sends an html file to the client */
 void    send_html(int client_socket, const char *file_path)
@@ -67,7 +81,14 @@ int main(void)
     char                request[BUFFER_SIZE];
     int                 received;
 
-    signal(SIGPIPE, SIG_IGN);
+    /* Handle the SIGINT */
+    struct sigaction    newAction;
+
+    newAction.sa_handler = signalHandler;
+    sigemptyset(&newAction.sa_mask);
+    newAction.sa_flags = 0;
+    sigaction(SIGINT, &newAction, NULL);
+
     memset(&server_addr, 0, sizeof(server_addr));
     memset(&client_addr, 0, sizeof(client_addr));
     server_socket = socket(AF_INET, SOCK_STREAM, 0);
@@ -82,27 +103,32 @@ int main(void)
 
     server_addr.sin_family = AF_INET;
     server_addr.sin_addr.s_addr = INADDR_ANY;
-    server_addr.sin_port = htons(PORT[0]);
-    ret = bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
-    while (ret < 0 && i < 3)
+    server_addr.sin_port = htons(PORT);
+    ret = bind(server_socket,
+            (struct sockaddr *)&server_addr, sizeof(server_addr));
+    while (ret < 0 && i < 10)
     {
-        server_addr.sin_port = htons(PORT[i]);
-        ret = bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
-        if (i == 2)
+        server_addr.sin_port = htons(PORT);
+        ret = bind(server_socket,
+                (struct sockaddr *)&server_addr, sizeof(server_addr));
+        if (i == 9)
         {
-            std::cerr << "Failed to bind socket address to port " << PORT[i]
+            std::cerr << "Failed to bind socket address to port "
+                      << PORT
                       << "! Closing program \n";
             close(server_socket);
             exit(2);
         }
         if (ret < 0)
         {
-            std::cerr << "Failed to bind socket address to port " << PORT[i] << "\n";
+            std::cerr << "Failed to bind socket address to port "
+                      << PORT << "\n";
             i++;
+            PORT += 60;
         }
     }
 
-    std::cout << "Opened Port " << PORT[i] << "\n";
+    std::cout << "Opened Port " << PORT << "\n";
 
     if (listen(server_socket, 5) < 0)
     {
@@ -110,9 +136,14 @@ int main(void)
         exit(3);
     }
 
-    while (1)
+    while (!interrupt)
     {
-        client_socket = accept(server_socket, (struct sockaddr*)&client_addr, &client_len);
+        client_socket = accept(server_socket,
+                (struct sockaddr*)&client_addr, &client_len);
+        if (fcntl(client_socket, F_SETFL,
+                fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK))
+            exit(1);
+
         if (client_socket < 0)
         {
             std::cout << "Client connection attempt failed!\n";

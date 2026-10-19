@@ -1,4 +1,4 @@
-NAME = miniserver/miniserver
+NAME = miniserver
 COMPILER = c++
 FLAGS = -std=c++98 -Wall -Wextra -Werror -g
 SRCS = main.cpp
