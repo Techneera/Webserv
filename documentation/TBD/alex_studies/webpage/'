@@ -1,0 +1,27 @@
+body
+{
+    align-items: center;
+    font-family: Monospace, Papyrus;
+    font-size: 50px;
+    background-color: #000000;
+    color: #FFFFFF; }
+
+.button_box
+{
+    font-size: 25px;
+    padding: 25px;
+    color: black;
+    background-color: #BB00AA;
+    text-align: center;
+    cursor: pointer;
+    accent-color: #FFFF00;
+    border-radius: 40px;
+}
+
+#button_area
+{
+    border-style: solid;
+    border-color: red;
+    display: flex;
+    justify-content: center;
+}

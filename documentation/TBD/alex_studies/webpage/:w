@@ -1,0 +1,21 @@
+body
+{
+    font-family: Monospace, Papyrus;
+    background-color: #000000;
+    color: #FFFFFF; }
+
+.button_box
+{
+    font-size: 30px;
+    padding: 20px;
+    color: black;
+    background-color: #FF00FF;
+}
+
+#button_area
+{
+    border-style: solid;
+    border-color: red;
+    border-radius: 10px red;
+    display: flex;
+}

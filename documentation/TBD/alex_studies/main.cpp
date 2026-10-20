@@ -11,7 +11,7 @@
 
 #define BUFFER_SIZE 1024
 
-int PORT = 9000;
+int PORT = 8000;
 volatile sig_atomic_t   interrupt = 0;
 
 void signalHandler_Ctrl_C(int sig)
