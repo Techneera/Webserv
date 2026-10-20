@@ -140,9 +140,9 @@ int main(void)
     {
         client_socket = accept(server_socket,
                 (struct sockaddr*)&client_addr, &client_len);
-        if (fcntl(client_socket, F_SETFL,
+        /*if (fcntl(client_socket, F_SETFL,
                 fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK))
-            exit(1);
+            exit(1);*/
 
         if (client_socket < 0)
         {
