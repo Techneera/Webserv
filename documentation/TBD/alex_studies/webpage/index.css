@@ -4,15 +4,17 @@ body
     font-family: Monospace, Papyrus;
     font-size: 50px;
     background-color: #000000;
-    color: #FFFFFF;
+    color: #;
 }
 
 .div_body
 {
     //border-style: solid;
     //border-color: green;
-    display: block;
-    justify-content: center;
+    position: absolute;
+    left: 50%;
+    right: 50%;
+    bottom: 50%;
 }
 
 .button_area
