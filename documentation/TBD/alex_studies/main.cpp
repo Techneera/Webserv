@@ -26,11 +26,11 @@ void signalHandler(int signalCode)
 }
 
 /* Sends an html file to the client */
-void    send_html(int client_socket, const char *file_path)
+void    send_file(int client_socket, const char *file_path, std::string header)
 {
-    FILE    *html_file = fopen(file_path, "r");
+    FILE    *file = fopen(file_path, "r");
     
-    if (html_file == NULL)
+    if (file == NULL)
     {
         perror("Could not open HTML file!\n");
         return;
@@ -38,12 +38,10 @@ void    send_html(int client_socket, const char *file_path)
 
     char        buffer[BUFFER_SIZE];
     int         bytes_read;
-    std::string http_header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\
-                            Connection: close\r\n\r\n";
 
     /* sends html to the browser socket, since its 0, and it behaves just like
      * a write function */
-    send(client_socket, http_header.c_str(), http_header.size(), 0);
+    send(client_socket, header.c_str(), header.size(), 0);
 
     /*
     for (size_t bytes_sent = 1; bytes_sent > 0; )
@@ -52,7 +50,7 @@ void    send_html(int client_socket, const char *file_path)
     }
     */
 
-    while ((bytes_read = fread(buffer, 1, BUFFER_SIZE, html_file)) > 0)
+    while ((bytes_read = fread(buffer, 1, BUFFER_SIZE, file)) > 0)
     {
         //send(client_socket, buffer, bytes_read, 0);
         for (int bytes_sent = 0, total_bytes = 0; total_bytes < bytes_read; )
@@ -63,14 +61,14 @@ void    send_html(int client_socket, const char *file_path)
             if (bytes_sent < 0)
             {
                 perror("Sending Failed!\n");
-                fclose(html_file);
+                fclose(file);
                 return ;
             }
             total_bytes += bytes_sent;
         }
     }
-    std::cout << "Finished sending html!\n";
-    fclose(html_file);
+    std::cout << "Finished sending " << file_path << "!\n";
+    fclose(file);
 }
 
 int main(void)
@@ -136,8 +134,28 @@ int main(void)
         exit(3);
     }
 
-    while (!interrupt)
+    for (size_t i = 0; !interrupt; i++)
     {
+        char    css[] = "webpage/index.css";
+        char    html[] = "index.html";
+        char    *file;
+        std::string http_header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\
+                            Connection: close\r\n\r\n";
+        std::string css_header = "HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\
+                            Connection: close\r\n\r\n";
+        std::string header;
+
+
+        if (i % 2 == 0)
+        {
+            file = html;
+            header = http_header;
+        }
+        else
+        {
+            file = css;
+            header = css_header;
+        }
         client_socket = accept(server_socket,
                 (struct sockaddr*)&client_addr, &client_len);
         /*if (fcntl(client_socket, F_SETFL,
@@ -155,7 +173,7 @@ int main(void)
         {
             request[received] = '\0';
             std::cout << "\nREQUEST\n" << request << "\n\n";
-            send_html(client_socket, "index.html");
+            send_file(client_socket, file, header);
         }
         close(client_socket);
         std::cout << "Client disconnected!\n";
