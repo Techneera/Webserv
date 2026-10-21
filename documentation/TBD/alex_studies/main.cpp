@@ -8,17 +8,20 @@
 #include <iostream>
 #include <fcntl.h>
 #include <signal.h>
+#include <sys/epoll.h>
+#include <vector>
+
+typedef int fd;
+
+typedef std::vector<fd> fdVec;
+typedef fdVec::iterator fdVecIt;
 
 #define BUFFER_SIZE 1024
+#define MAX_EVENTS 1024
 
 int PORT = 8000;
 volatile sig_atomic_t   interrupt = 0;
 
-void signalHandler_Ctrl_C(int sig)
-{
-    (void)sig;
-    std::cerr << "CTRL-C called\n";
-}
 void signalHandler(int signalCode)
 {
     std::cerr << "Server Interrupted by SIGINT!\n";
@@ -134,6 +137,11 @@ int main(void)
         exit(3);
     }
 
+    /*struct epoll_event eEvent;
+    struct epoll_event eEvents[MAX_EVENTS];*/
+
+    //memset(eEvents, -1, );
+
     for (size_t i = 0; !interrupt; i++)
     {
         char    css[] = "webpage/index.css";
@@ -160,7 +168,10 @@ int main(void)
                 (struct sockaddr*)&client_addr, &client_len);
         /*if (fcntl(client_socket, F_SETFL,
                 fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK))
-            exit(1);*/
+        {
+            exit(1);
+            std::cerr << "ERROR: Couldn't set client_socket to nont blocking\n";
+        }*/
 
         if (client_socket < 0)
         {
@@ -168,6 +179,7 @@ int main(void)
             continue ;
         }
         std::cerr << "Client connected!\n";
+        //int fd = epoll_create(1);
         received = recv(client_socket, request, BUFFER_SIZE - 1, 0);
         if (received > 0)
         {

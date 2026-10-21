@@ -9,29 +9,25 @@ body
 
 .div_body
 {
-    //border-style: solid;
-    //border-color: green;
-    position: absolute;
-    left: 50%;
-    right: 50%;
-    bottom: 50%;
+    height: 100vw;
+    border-style: solid;
+    border-color: green;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .button_area
 {
-    //border-style: solid;
-    //border-color: red;
+    border-style: solid;
+    border-color: red;
     display: flex;
     justify-content: center;
 }
 
-.button
+.crazy_button
 {
     margin: 35px;
-}
-
-.button button
-{
     border: none;
     font-size: 25px;
     text-decoration: none;
@@ -53,10 +49,10 @@ body
  *     expands in size and makes its border
  *     get bigger */
 
-.button button:active
+.crazy_button:active
 {
     top: 10px;
     background-color: #4400AA;
-    //color: black;
-    //margin: 3px; Idea 2-
+    /*color: black;*/
+    /*margin: 3px; Idea 2-*/
 }
