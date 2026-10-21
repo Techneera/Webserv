@@ -137,11 +137,10 @@ int main(void)
         exit(3);
     }
 
-    /*struct epoll_event eEvent;
-    struct epoll_event eEvents[MAX_EVENTS];*/
+    struct epoll_event eEvent;
+    struct epoll_event eEvents[MAX_EVENTS];
 
-    //memset(eEvents, -1, );
-
+    memset(eEvents, -1, MAX_EVENTS);
     for (size_t i = 0; !interrupt; i++)
     {
         char    css[] = "webpage/index.css";
@@ -166,12 +165,12 @@ int main(void)
         }
         client_socket = accept(server_socket,
                 (struct sockaddr*)&client_addr, &client_len);
-        /*if (fcntl(client_socket, F_SETFL,
+        if (fcntl(client_socket, F_SETFL,
                 fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK))
         {
             exit(1);
             std::cerr << "ERROR: Couldn't set client_socket to nont blocking\n";
-        }*/
+        }
 
         if (client_socket < 0)
         {
@@ -179,7 +178,23 @@ int main(void)
             continue ;
         }
         std::cerr << "Client connected!\n";
-        //int fd = epoll_create(1);
+        int epollFd = epoll_create(1);
+        if (epollFd == 1)
+        {
+            close(client_socket);
+            // TODO: Close all epoll fds
+            std::cerr << "ERROR: Failed to create epoll\n";
+            exit(1);
+        }
+        eEvent.events = EPOLLIN;
+        eEvent.data.fd = client_socket;
+        if (epoll_ctl(epollFd, EPOLL_CTL_ADD, client_socket, & eEvent) == -1)
+        {
+            close(client_socket);
+            // TODO: Close all epoll fds
+            std::cerr << "ERROR: Failed to add epoll\n";
+            exit(1);
+        }
         received = recv(client_socket, request, BUFFER_SIZE - 1, 0);
         if (received > 0)
         {
