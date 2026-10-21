@@ -160,18 +160,29 @@ int main(void)
         std::cerr << "ERROR: Failed to add epoll\n";
         exit(1);
     }
-    for (size_t i = 0; !interrupt; i++)
+    for (size_t i = 0;!interrupt; i++)
     {
-        if (i % 2 == 0)
+        /*if (i % 2 == 0)
+        {
+            file = css;
+            header = css_header;
+        } 
+        else
         {
             file = html;
             header = http_header;
-        } 
-        else
+        }*/
+        if (i == 0)
+        {
+            file = html;
+            header = http_header;
+        }
+        if (i == 2)
         {
             file = css;
             header = css_header;
         }
+
         nfds = epoll_wait(epollFd, eEvents, MAX_EVENTS, -1);
         if (nfds == -1)
         {
@@ -225,8 +236,13 @@ int main(void)
                 if (received == -1)
                 {
                     close(eEvents[n].data.fd);
-                    std::cout << "Client disconnected!\n";
+                    std::cerr << "ERROR: received failed!\n";
                 }
+            }
+            if (i == 3)
+            {
+                for (size_t j = 0; j < MAX_EVENTS; j++)
+                    close(eEvents[j].data.fd);
             }
         }
     }
