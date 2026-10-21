@@ -1,4 +1,4 @@
-//#include <sys/socket.h>
+#include <sys/socket.h>
 #include <arpa/inet.h> // helps ip addresses
 #include <csignal>
 #include <cstdio>
@@ -21,6 +21,12 @@ typedef fdVec::iterator fdVecIt;
 
 int PORT = 8000;
 volatile sig_atomic_t   interrupt = 0;
+char        css[] = "webpage/index.css";
+char        html[] = "index.html";
+std::string http_header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\
+                           Connection: close\r\n\r\n";
+std::string css_header = "HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\
+                          Connection: close\r\n\r\n";
 
 void signalHandler(int signalCode)
 {
@@ -32,7 +38,7 @@ void signalHandler(int signalCode)
 void    send_file(int client_socket, const char *file_path, std::string header)
 {
     FILE    *file = fopen(file_path, "r");
-    
+
     if (file == NULL)
     {
         perror("Could not open HTML file!\n");
@@ -47,11 +53,11 @@ void    send_file(int client_socket, const char *file_path, std::string header)
     send(client_socket, header.c_str(), header.size(), 0);
 
     /*
-    for (size_t bytes_sent = 1; bytes_sent > 0; )
-    {
-        bytes_sent = send(client_socket, http_header, strlen(http_header), 0);
-    }
-    */
+       for (size_t bytes_sent = 1; bytes_sent > 0; )
+       {
+       bytes_sent = send(client_socket, http_header, strlen(http_header), 0);
+       }
+       */
 
     while ((bytes_read = fread(buffer, 1, BUFFER_SIZE, file)) > 0)
     {
@@ -59,8 +65,8 @@ void    send_file(int client_socket, const char *file_path, std::string header)
         for (int bytes_sent = 0, total_bytes = 0; total_bytes < bytes_read; )
         {
             bytes_sent = send(client_socket,
-                              buffer + total_bytes,
-                              bytes_read - total_bytes, 0);
+                    buffer + total_bytes,
+                    bytes_read - total_bytes, 0);
             if (bytes_sent < 0)
             {
                 perror("Sending Failed!\n");
@@ -115,97 +121,107 @@ int main(void)
         if (i == 9)
         {
             std::cerr << "Failed to bind socket address to port "
-                      << PORT
-                      << "! Closing program \n";
+                << PORT
+                << "! Closing program \n";
             close(server_socket);
             exit(2);
         }
         if (ret < 0)
         {
             std::cerr << "Failed to bind socket address to port "
-                      << PORT << "\n";
+                << PORT << "\n";
             i++;
             PORT += 60;
         }
     }
-
     std::cout << "Opened Port " << PORT << "\n";
 
     if (listen(server_socket, 5) < 0)
     {
         perror("Could not listen from server!\n");
+        close(server_socket);
         exit(3);
     }
 
-    struct epoll_event eEvent;
-    struct epoll_event eEvents[MAX_EVENTS];
+    int                 n;
+    int                 nfds;
+    int                 epollFd = epoll_create(1);
+    struct epoll_event  eEvent;
+    struct epoll_event  eEvents[MAX_EVENTS];
+    char                *file;
+    std::string         header;
 
-    memset(eEvents, -1, MAX_EVENTS);
+    eEvent.events = EPOLLIN;
+    eEvent.data.fd = server_socket;
+    if (epoll_ctl(epollFd, EPOLL_CTL_ADD, server_socket, & eEvent) == -1)
+    {
+        close(server_socket);
+        // TODO: Close all epoll fds needed
+        std::cerr << "ERROR: Failed to add epoll\n";
+        exit(1);
+    }
     for (size_t i = 0; !interrupt; i++)
     {
-        char    css[] = "webpage/index.css";
-        char    html[] = "index.html";
-        char    *file;
-        std::string http_header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\
-                            Connection: close\r\n\r\n";
-        std::string css_header = "HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\
-                            Connection: close\r\n\r\n";
-        std::string header;
-
-
-        if (i % 2 == 0)
-        {
+        /*if (i % 2 == 0)
+        {*/
             file = html;
             header = http_header;
-        }
-        else
+        //}
+        /*else
         {
             file = css;
             header = css_header;
-        }
-        client_socket = accept(server_socket,
-                (struct sockaddr*)&client_addr, &client_len);
-        if (fcntl(client_socket, F_SETFL,
-                fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK))
+        }*/
+        nfds = epoll_wait(epollFd, eEvents, MAX_EVENTS, -1);
+        if (nfds == -1)
         {
-            exit(1);
-            std::cerr << "ERROR: Couldn't set client_socket to nont blocking\n";
+            std::cerr << "ERROR: epoll_wait failed!\n";
+            // TODO: close all epoll fds needed
+            close(server_socket);
         }
-
-        if (client_socket < 0)
+        for (n = 0; n < nfds; n++)
         {
-            std::cout << "Client connection attempt failed!\n";
-            continue ;
+            if (eEvents[n].data.fd == server_socket)
+            {
+                client_socket = accept(server_socket,
+                        (struct sockaddr*)&client_addr, &client_len);
+                if (fcntl(client_socket, F_SETFL,
+                            fcntl(client_socket, F_GETFL, 0) | O_NONBLOCK) == -1)
+                {
+                    std::cerr << "ERROR: Couldn't set client_socket "
+                        << "to nonblocking\n";
+                    exit(1);
+                }
+                if (client_socket == -1)
+                {
+                    std::cout << "Client connection attempt failed!\n";
+                    // TODO: close all epoll fds needed
+                    close(server_socket);
+                }
+                std::cout << "New client detected!\n";
+                std::cout << "Client socket set to nonblocking\n";
+                eEvent.events = EPOLLIN | EPOLLET;
+                eEvent.data.fd = client_socket;
+                if (epoll_ctl(epollFd, EPOLL_CTL_ADD,
+                            client_socket, &eEvent) == -1)
+                {
+                    //TODO: close all epoll fds needed
+                    std::cerr << "ERROR: epoll_ctl failed!\n";
+                    exit(1);
+                }
+                std::cerr << "Client saved!\n";
+            }
+            received = recv(eEvents[n].data.fd, request, BUFFER_SIZE - 1, 0);
+            if (received > 0)
+            {
+                request[received] = '\0';
+                std::cout << "\nREQUEST\n" << request << "\n\n";
+                send_file(eEvents[n].data.fd, file, header);
+            }
+            close(eEvents[n].data.fd);
+            std::cout << "Client disconnected!\n";
         }
-        std::cerr << "Client connected!\n";
-        int epollFd = epoll_create(1);
-        if (epollFd == 1)
-        {
-            close(client_socket);
-            // TODO: Close all epoll fds
-            std::cerr << "ERROR: Failed to create epoll\n";
-            exit(1);
-        }
-        eEvent.events = EPOLLIN;
-        eEvent.data.fd = client_socket;
-        if (epoll_ctl(epollFd, EPOLL_CTL_ADD, client_socket, & eEvent) == -1)
-        {
-            close(client_socket);
-            // TODO: Close all epoll fds
-            std::cerr << "ERROR: Failed to add epoll\n";
-            exit(1);
-        }
-        received = recv(client_socket, request, BUFFER_SIZE - 1, 0);
-        if (received > 0)
-        {
-            request[received] = '\0';
-            std::cout << "\nREQUEST\n" << request << "\n\n";
-            send_file(client_socket, file, header);
-        }
-        close(client_socket);
-        std::cout << "Client disconnected!\n";
     }
-
     close(server_socket);
     return (0);
 }
