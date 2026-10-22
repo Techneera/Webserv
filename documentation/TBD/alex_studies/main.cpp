@@ -160,18 +160,21 @@ int main(void)
         std::cerr << "ERROR: Failed to add epoll\n";
         exit(1);
     }
-    for (int i = 0;!interrupt; i++)
+    for (;!interrupt;)
     {
         nfds = epoll_wait(epollFd, eEvents, MAX_EVENTS, -1);
+        std::cout << "epoll_wait return: " <<  nfds << "\n";
         if (nfds == -1)
         {
             std::cerr << "ERROR: epoll_wait failed!\n";
             // TODO: close all epoll fds needed
             close(server_socket);
+            close(epollFd);
             exit(1);
         }
         for (n = 0; n < nfds; n++)
         {
+            std::cout << "size of eEvents: " << n << "\n";
             if (eEvents[n].data.fd == server_socket)
             {
                 client_socket = accept(server_socket,
@@ -181,6 +184,7 @@ int main(void)
                     std::cout << "Client connection attempt failed!\n";
                     // TODO: close all epoll fds needed
                     close(server_socket);;
+                    //close(epollFd);
                     exit(1);
                 }
                 if (fcntl(client_socket, F_SETFL,
@@ -188,6 +192,7 @@ int main(void)
                 {
                     std::cerr << "ERROR: Couldn't set client_socket "
                         << "to nonblocking\n";
+                    close(epollFd);
                     exit(1);
                 }
                 std::cout << "New client detected!\n";
@@ -201,6 +206,7 @@ int main(void)
                     //TODO: close all epoll fds needed
                     std::cerr << "ERROR: epoll_ctl failed!\n";
                     close(server_socket);
+                    //close(epollFd);
                     exit(1);
                 }
                 std::cerr << "Client saved!\n";
@@ -214,6 +220,8 @@ int main(void)
                 }
                 if (received > 0)
                 {
+                    request[received] = '\0';
+                    std::cout << "\nREQUEST\n" << request << "\n\n";
                     if (std::strstr(request, "html"))
                     {
                         file = html;
@@ -224,8 +232,6 @@ int main(void)
                         file = css;
                         header = css_header;
                     }
-                    request[received] = '\0';
-                    std::cout << "\nREQUEST\n" << request << "\n\n";
                     send_file(eEvents[n].data.fd, file, header);
                     close(eEvents[n].data.fd);
                 }
@@ -234,12 +240,16 @@ int main(void)
                     std::cerr << "ERROR: received failed!\n";
                     close(eEvents[n].data.fd);
                     close(server_socket);
+                    close(epollFd);
                     exit(1);
                 }
             }
         }
     }
+    close (eEvents[0].data.fd);
+    close(epollFd);
     close(server_socket);
+    std::cout << "hello!\n";
     return (0);
 }
 
