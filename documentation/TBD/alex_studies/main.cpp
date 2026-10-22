@@ -21,12 +21,17 @@ typedef fdVec::iterator fdVecIt;
 
 int PORT = 8000;
 volatile sig_atomic_t   interrupt = 0;
-char        css[] = "webpage/index.css";
-char        html[] = "index.html";
-std::string http_header = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\
-                           Connection: close\r\n\r\n";
-std::string css_header = "HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\
-                          Connection: close\r\n\r\n";
+char        html_home[] = "index.html";
+char        css_home[] = "webpage/index.css";
+char        js_home[] = "webpage/index.js";
+char        http_header[] = "HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n\
+                             Connection: close\r\n\r\n";
+char        css_header[] = "HTTP/1.1 200 OK\r\nContent-Type: text/css\r\n\
+                            Connection: close\r\n\r\n";
+char        js_header[] = "HTTP/1.1 200 OK\r\nContent-Type: text/js\r\n\
+                            Connection: close\r\n\r\n";
+
+void respond(int fd, char *request, char *header, char *file);
 
 void signalHandler(int signalCode)
 {
@@ -148,8 +153,8 @@ int main(void)
     int                 epollFd = epoll_create1(0);
     struct epoll_event  eEvent;
     struct epoll_event  eEvents[MAX_EVENTS];
-    char                *file;
-    std::string         header;
+    char                *file = NULL;
+    char                *header = NULL;
 
     eEvent.events = EPOLLIN;
     eEvent.data.fd = server_socket;
@@ -222,18 +227,7 @@ int main(void)
                 {
                     request[received] = '\0';
                     std::cout << "\nREQUEST\n" << request << "\n\n";
-                    if (std::strstr(request, "html"))
-                    {
-                        file = html;
-                        header = http_header;
-                    }
-                    else if (std::strstr(request, "css"))
-                    {
-                        file = css;
-                        header = css_header;
-                    }
-                    send_file(eEvents[n].data.fd, file, header);
-                    close(eEvents[n].data.fd);
+                    respond(eEvents[n].data.fd, request, header, file);
                 }
                 if (received == -1)
                 {
@@ -253,3 +247,25 @@ int main(void)
     return (0);
 }
 
+
+void respond(int fd, char *request, char *header, char *file)
+{
+    if (std::strstr(request, ".html"))
+    {
+        file = html_home;
+        header = http_header;
+    }
+    else if (std::strstr(request, ".css"))
+    {
+        file = css_home;
+        header = css_header;
+    }
+    else if (std::strstr(request, ".js"))
+    {
+        file = js_home;
+        header = js_header;
+    }
+    if (file && header)
+        send_file(fd, file, header);
+    close(fd);
+}
