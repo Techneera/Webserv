@@ -247,10 +247,15 @@ int main(void)
     return (0);
 }
 
-
+/* TODO:
+ *      1- Make it so the port is properly closed at the closing
+ *          of the program
+ *      2- Start building the configuration file logic with respond
+ *          function
+ *          */
 void respond(int fd, char *request, char *header, char *file)
 {
-    if (std::strstr(request, ".html"))
+    if (std::strstr(request, "html"))
     {
         file = html_home;
         header = http_header;
