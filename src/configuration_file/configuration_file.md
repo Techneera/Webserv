@@ -5,9 +5,11 @@
 |https://nginx.org/en/docs/beginners_guide.html|
 
 
-- As one of the tasks of a webserver is serving files, depending on file
+- As one of the tasks of a webserver is serving files, depending on file it is requested to serve, it can define a configuration file that systematically presents information on what are the directories to fetch the files that are requested.
+    
+    :arrow_forward:
 
-- Constituted by `directives` divided into `simple` and `block` directives.
+- The configuration file is constituted by `directives` divided into `simple` and `block` directives.
     - If a block directive can have other directives inside braces, it is called a `context`.
 
   | Directive|  Description|
