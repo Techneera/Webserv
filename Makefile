@@ -1,23 +1,38 @@
 NAME = webserv
+
 COMPILER = c++
+
 FLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDE_FLAGS)
+
 MAIN = main.cpp
+
 CONFIGURATION_FILE = configuration_file/config_tmp.cpp
+
+SIGNAL = signal/signal.cpp
+
 EVENT_LOOP = event_loop/event_loop.cpp
+
 INCLUDES = event_loop \
-		   configuration_file
+		   configuration_file \
+		   signal
+
 INCLUDE = $(INCLUDES:%=src/%)
+
 INCLUDE_FLAGS = $(addprefix -I ,$(INCLUDE))
+
 SCRIPTS = $(MAIN) \
 		  $(CONFIGURATION_FILE) \
-		  $(EVENT_LOOP)
+		  $(EVENT_LOOP) \
+		  $(SIGNAL)
+
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
+
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(NAME)
 
 %.o: %.cpp
-	$(COMPILER) $(FLAGS) $(INCLUDE_FLAGS) -c $< -o $@
+	$(COMPILER) $(FLAGS) -c $< -o $@
 
 .SECONDEXPANSION:
 $(NAME): $$(OBJS)
