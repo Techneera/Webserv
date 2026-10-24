@@ -1,0 +1,90 @@
+:root
+{
+    --green: #003344;
+    --moonlight: #33BB99;
+    --purple: #4400AA;
+
+    --button_color: var(--green);
+    --button_color_active: var(--moonlight);
+}
+
+body
+{
+    height: 97vh;
+    border: 1px;
+    border-style: solid;
+    border-color: red;
+
+    text-align: center;
+    font-family: Monospace, Papyrus;
+    font-size: 50px;
+    background-color: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.div_body
+{
+    border: 1px;
+    border-style: solid;
+    border-color: green;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+}
+
+@media (max-width: 1000px)
+{
+    .div_body
+    {
+        flex-direction: column;
+    }
+}
+
+.crazy_button
+{
+    margin: 35px;
+    border: none;
+    font-size: 25px;
+    text-decoration: none;
+    font-weight: bold;
+    text-shadow: 2px 2px black;
+    padding: 25px;
+    color: var(--button_color);
+    background-color: black;
+    text-align: center;
+    border-radius: 100px;
+    box-shadow: 0px 0px 10px 2px var(--button_color);
+}
+
+.crazy_button:hover
+{
+    color: var(--button_color_active);
+    box-shadow: 0px 0px 10px 2px var(--button_color_active);
+}
+
+.crazy_button:selected
+{
+    color: var(--button_color_active);
+    box-shadow: 0px 0px 10px 2px var(--button_color_active);
+}
+
+/* Button Ideas:
+ *  1- Maybe JavaScript: all the rest of the
+ *     page becomes the color of the clicked
+ *     button
+ *  2- Maybe with the margin: the button
+ *     expands in size and makes its border
+ *     get bigger */
+
+.crazy_button:active
+{
+    color: var(--button_color_active);
+    background-color: var(--button_color_active);
+    box-shadow: 0px 0px 10px 2px var(--button_color_active);
+    /*color: black;*/
+    /*margin: 3px; Idea 2-*/
+}
