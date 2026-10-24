@@ -1,4 +1,5 @@
 #include "event_loop.hpp"
+#include "config_tmp.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -10,8 +11,6 @@
 #include <cerrno>
 #include <cstring>
 #include <iostream>
-#include <fstream>
-#include <string>
 
 static int createListener(int port)
 {
@@ -19,19 +18,24 @@ static int createListener(int port)
   int opt;
   struct sockaddr_in  addr;
 
-  fd = socket(AF_INET, SOCK_STREAM | O_NONBLOCK, 0); // Added non block option in the socket definition
+  // Added non block option in the socket definition
+  fd = socket(AF_INET, SOCK_STREAM | O_NONBLOCK, 0);
   if (fd < 0)
   {
-    std::cerr << "Could not create socket " << std::strerror(errno) << std::endl;
+    std::cerr << "ERROR: Could not create socket "
+              << std::strerror(errno) << std::endl;
     exit(1);
   }
+  std::cout << "Server socket created with success\n";
 
   opt = 1; // SO_REUSEADDR restart the server without having to restart port
   if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
   {
-    std::cerr << "Could not set option for socket " << std::strerror(errno) << std::endl;
+    std::cerr << "ERROR: Could not set option for socket "
+              << std::strerror(errno) << std::endl;
     exit(1);
   }
+  std::cout << "Server socket options set to: SOL_SOCKET, SO_REUSEADDR\n";
 
   std::memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
@@ -40,71 +44,24 @@ static int createListener(int port)
 
   if (bind(fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
   {
-    std::cerr << "Failed bind " << std::strerror(errno) << std::endl;
+    std::cerr << "ERROR: Failed to set server socket to "
+              << "IPv4 protocol with port " << port
+              << std::strerror(errno) << std::endl;
     exit(1);
   }
+  std::cout << "Server socket set to IPv4 protocol with port "
+            << port << "\n";
 
   if (listen(fd, SOMAXCONN) < 0)
   {
-    std::cerr << "Failed listen " << std::strerror(errno) << std::endl;
+    std::cerr << "ERROR: Failed to set socket to passive mode "
+              << std::strerror(errno) << std::endl;
     exit(1);
   }
-  
+  std::cout << "Server socket set to passive\n";
+
   //fcntl(fd, F_SETFL, O_NONBLOCK);
   return fd;
-}
-
-static int  fetch_config(char *filename)
-{
-    std::ifstream   ifs(filename);
-    if (!ifs)
-    {
-        std::cerr << "Cannot open config file: " << filename << std::endl;
-        return (-1);
-    }
-
-    std::string     digits;
-    char            c;
-    bool            started;
-
-    while (ifs.get(c))
-    {
-        if (std::isdigit(static_cast<unsigned char>(c)))
-        {
-            digits += c;
-            started = true;
-        }
-        else if (started)
-            break;
-    }
-
-    if (digits.empty())
-    {
-        std::cerr << "No port number foung in config" << std::endl;
-        return (-1);
-    }
-
-    errno = 0;
-    char    *end = NULL;
-    long    port = std::strtol(digits.c_str(), &end, 10);
-
-    if (errno == ERANGE)
-    {
-        std::cerr << "Port number out of range" << std::endl;
-        return (-1);
-    }
-    if (end == digits.c_str() || *end != '\0')
-    {
-        std::cerr << "Invalid port number" << std::endl;
-        return (-1);
-    }
-    if (port < 1025 || port > 65535)
-    {
-        std::cerr << "Port number must be between 1025 and 65535" << std::endl;
-        return (-1);
-    }
-
-    return (static_cast<int>(port));
 }
 
 static void setNonBlocking(int fd)
@@ -118,14 +75,14 @@ int event_loop(int argc, char **argv)
 {
   if (argc != 2)
   {
-      std::cerr << "Usage: " << argv[0] << " <config_file>" << std::endl;
+      std::cerr << "ERROR: Usage: " << argv[0] << " <config_file>" << std::endl;
       return (1);
   }
 
   int port = fetch_config(argv[1]);
   if (port < 0)
   {
-      std::cerr << "Error reading port from config" << std::endl;
+      std::cerr << "ERROR: Error reading port from config" << std::endl;
       return (-1);
   }
   
@@ -133,7 +90,7 @@ int event_loop(int argc, char **argv)
   int e_fd = epoll_create(1);
   if (e_fd < 0)
   {
-    std::cerr << "Failed to create epoll" << std::endl;
+    std::cerr << "ERROR: Failed to create epoll" << std::endl;
     return (1);
   }
   
@@ -143,7 +100,7 @@ int event_loop(int argc, char **argv)
 
   if (epoll_ctl(e_fd, EPOLL_CTL_ADD, listener_fd, &ev) < 0)
   {
-      std::cerr << "epoll_ctl failed: " << std::strerror(errno) << std::endl;
+      std::cerr << "ERROR: epoll_ctl failed: " << std::strerror(errno) << std::endl;
       return (-1);
   }
 
@@ -157,7 +114,7 @@ int event_loop(int argc, char **argv)
       {
           if (errno == EINTR) // Signal interrupt just retry
               continue;
-          std::cerr << "epoll_wait failed: " << std::strerror(errno) << std::endl;
+          std::cerr << "ERROR: epoll_wait failed: " << std::strerror(errno) << std::endl;
           break;
       }
 
@@ -173,7 +130,7 @@ int event_loop(int argc, char **argv)
               if (client_fd < 0)
               {
                   if (errno != EAGAIN && errno != EWOULDBLOCK)
-                      std::cerr << "epoll_wait failed: " << std::strerror(errno) << std::endl;
+                      std::cerr << "ERROR: epoll_wait failed: " << std::strerror(errno) << std::endl;
                   break;
               }
               setNonBlocking(client_fd);
