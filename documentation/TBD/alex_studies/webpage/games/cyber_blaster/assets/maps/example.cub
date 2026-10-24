@@ -1,0 +1,23 @@
+NO 255,0,0
+SO 0,0,255
+WE 0,255,0
+EA 255,255,0
+F assets/sprites/xpm/tiles/castle/castle_floor0.xpm
+C assets/sprites/xpm/tiles/castle/castle_ceiling1.xpm
+
+T2N assets/sprites/xpm/tiles/castle/castle_door0.xpm
+T2E assets/sprites/xpm/tiles/castle/castle_door0.xpm
+T2S assets/sprites/xpm/tiles/castle/castle_door0.xpm
+T2W assets/sprites/xpm/tiles/castle/castle_door0.xpm
+
+1111111111111111111111
+1000000000000000000001
+1000000000000000000001
+1000000000000000000001
+1000000000N00000000001
+1000000000000000000001
+1000000000000000000001
+1000000000000000000201
+1000000000000000000001
+1000000000000000000001
+1111111111111111111111

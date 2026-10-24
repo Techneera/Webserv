@@ -1,13 +1,13 @@
 NAME = miniserver
-COMPILER = cc
-FLAGS = -Wall -Wextra -Werror -g
-SRCS = main.c
-OBJS = $(SRCS:.c=.o)
+COMPILER = c++
+FLAGS = -std=c++98 -Wall -Wextra -Werror
+SRCS = main.cpp
+OBJS = $(SRCS:.cpp=.o)
 INCLUDES = includes/
 
 all: $(NAME)
 
-%.o: %.c
+%.o: %.cpp
 	$(COMPILER) $(FLAGS) -I $(INCLUDES) -c $< -o $@
 
 $(NAME): $(OBJS)
@@ -19,5 +19,8 @@ clean:
 fclean: clean
 	rm -rf $(NAME)
 
-re: fclean all
+debug: FLAGS = -std=c++98 -Wall -Wextra -g
+debug: fclean
+debug: all
 
+re: fclean all
