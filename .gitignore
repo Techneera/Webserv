@@ -73,3 +73,6 @@ Testing/
 CPlusPlus/
 .clangd
 compile_flags.txt
+
+# bear
+compile_commands.json

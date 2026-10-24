@@ -1,8 +1,12 @@
 NAME = webserv
 COMPILER = c++
-FLAGS = -Wall -Wextra -Werror -std=c++98
+FLAGS = -Wall -Wextra -Werror -std=c++98 -I $(INCLUDE)
 MAIN = main.cpp
-SCRIPTS = $(MAIN)
+EVENT_LOOP = event_loop/event_loop.cpp
+INCLUDES = event_loop
+INCLUDE = $(INCLUDES:%=src/%)
+SCRIPTS = $(MAIN) \
+		  $(EVENT_LOOP)
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
 OBJS = $(SRCS:.cpp=.o)
 

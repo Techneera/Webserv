@@ -1,3 +1,5 @@
+#include "event_loop.hpp"
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,9 +12,6 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-
-#define MAX_EVENTS  64
-#define MAX_BUF_SIZE 4096
 
 static int createListener(int port)
 {
@@ -115,7 +114,7 @@ static void setNonBlocking(int fd)
         fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
-int main(int argc, char **argv)
+int event_loop(int argc, char **argv)
 {
   if (argc != 2)
   {
@@ -202,4 +201,6 @@ int main(int argc, char **argv)
       }
     }
   }
+  return (0);
 }
+
