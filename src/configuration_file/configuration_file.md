@@ -1,13 +1,18 @@
 # CONFIGURATION FILE STRUCUTRE #
 
+
 |Sources |
 |-|
 |https://nginx.org/en/docs/beginners_guide.html|
 
 
 - As one of the tasks of a webserver is serving files, depending on file it is requested to serve, it can define a configuration file that systematically presents information on what are the directories to fetch the files that are requested.
-    
-    :arrow_forward:
+    |Directory|Content|
+    |-|-|
+    |`/data/www/`|`html` files|
+    |=|=|
+    |/data/images/|`images`|
+
 
 - The configuration file is constituted by `directives` divided into `simple` and `block` directives.
     - If a block directive can have other directives inside braces, it is called a `context`.
@@ -31,5 +36,17 @@
   |=|=|
   |`location`| `server`|
 
+    - `location` tells the webserver what should be the directory to look for matching the first directory after the `main page`address.
 
-    - `#` marks the start of a comment line
+|Request          |Configuration file        | Directory     |
+|-|-|-|
+|http://localhost/ |/location / {root /data/www} |/data/www |
+|=|=|=|
+|http://localhost/images/image.png|location /images {root /data}|/data/images/image.png|
+|=|=|=|
+|http://localhost/somedirectory/somefile.extension|location / {root /data/www}| /data/www/somedirectory/somefile.extension|
+
+
+- `#` marks the start of a comment line
+
+
