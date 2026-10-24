@@ -17,7 +17,7 @@ OBJS = $(SRCS:.cpp=.o)
 all: $(NAME)
 
 %.o: %.cpp
-	$(COMPILER) $(FLAGS) -c $< -o $@
+	$(COMPILER) $(FLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
 .SECONDEXPANSION:
 $(NAME): $$(OBJS)
@@ -37,12 +37,12 @@ debug: FLAGS= -g -Wall -Wextra $(INCLUDE_FLAGS)
 debug: all
 
 # In order to be able to test several different:
-# 1 - create module main
-# 2 - module main name format: _<module_name>.cpp
-# 3 - modules run make test_<module_name>
+# 1 - create module main in src dir
+# 2 - module main name format: main_<module_name>.cpp
+# 3 - run make test_<module_name>
 _%: fclean
 	@mkdir bin
-	@$(MAKE) FLAGS="-g -Wall -Wextra" MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=bin/%)
+	@$(MAKE) FLAGS="-g -Wall -Wextra $(INCLUDE_FLAGS)" MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=bin/%)
 	rm -rf src/*.o
 
 .PHONY: all clean fclean re
