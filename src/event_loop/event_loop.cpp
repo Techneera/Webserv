@@ -75,14 +75,20 @@ int event_loop(int argc, char **argv)
 {
   if (argc != 2)
   {
-      std::cerr << "ERROR: Usage: " << argv[0] << " <config_file>" << std::endl;
+      std::cerr << "ERROR: Usage: " << argv[0]
+                << " <config_file>" << std::endl;
       return (1);
   }
+  std::cout << "Setting " << argv[1]
+            << " as the configuration file\n";
 
+  // TODO:
+  //       1 -
   int port = fetch_config(argv[1]);
   if (port < 0)
   {
-      std::cerr << "ERROR: Error reading port from config" << std::endl;
+      std::cerr << "ERROR: Failed reading port from config"
+                << std::endl;
       return (-1);
   }
   
