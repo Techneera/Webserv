@@ -1,8 +1,16 @@
 NAME = webserv
 COMPILER = c++
-FLAGS = -Wall -Wextra -Werror -std=c++98
+FLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDE_FLAGS)
 MAIN = main.cpp
-SCRIPTS = $(MAIN)
+CONFIGURATION_FILE = configuration_file/config_tmp.cpp
+EVENT_LOOP = event_loop/event_loop.cpp
+INCLUDES = event_loop \
+		   configuration_file
+INCLUDE = $(INCLUDES:%=src/%)
+INCLUDE_FLAGS = $(addprefix -I ,$(INCLUDE))
+SCRIPTS = $(MAIN) \
+		  $(CONFIGURATION_FILE) \
+		  $(EVENT_LOOP)
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
 OBJS = $(SRCS:.cpp=.o)
 
@@ -25,7 +33,7 @@ fclean: clean
 re: fclean all
 
 debug: fclean
-debug: FLAGS= -g -Wall -Wextra
+debug: FLAGS= -g -Wall -Wextra $(INCLUDE_FLAGS)
 debug: all
 
 # In order to be able to test several different:
