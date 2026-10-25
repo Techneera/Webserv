@@ -6,20 +6,41 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int is_valid_comment;
-
 // TODO:
 //      1- send this function to a more broader utils module
 //      OR
 //      1- create a wrapper class of std::ifstream
-char    peekAndGet(std::ifstream &ifstream, char &c)
+int peekAndGet(std::ifstream &ifstream, char &c)
 {
     ifstream.get(c);
     return (c);
 }
 
-/* TODO:
- *      1 - Maybe chagne to a better name after group discussion */
+static int stt_parsePort()
+{
+    return (0);
+}
+
+// TODO:
+//      1- Directives finish with ';'
+static int stt_parseDirective()
+{
+    return (0);
+}
+
+// TODO:
+//      1- Blocks contain Directives
+//      2- Blocks start with '{' and end with '}'
+static int stt_parseBlock()
+{
+    return (0);
+}
+
+// TODO:
+//      1 - Maybe change to a better name after group discussion
+//      2 - Consumer loops must be restructured into functions
+//          due to the necessity of checking if the block or simple
+//          directives are finished or not
 int  fetch_config(char *filename)
 {
     std::ifstream   ifs(filename);
@@ -40,25 +61,27 @@ int  fetch_config(char *filename)
             // Consume spaces
             while (std::isspace(c))
                 if (peekAndGet(ifs, c) == EOF)
-                    break ;
+                    return (-1) ;
 
         consume_emptylines:
             // Consume empty lines
             while (c == '\n')
                 if (peekAndGet(ifs, c) == EOF)
-                    break ;
+                    return (1) ;
 
             // Consume comments
             if (c == '#')
             {
                 if (peekAndGet(ifs, c) == EOF)
-                    break ;
+                    return (1) ;
                 goto consume_emptylines;
             }
 
         if (std::isspace(c) || c == '\n' || c == '#')
             goto consume_spaces;
 
+        // TODO:
+        //      1- Move to another function that parses ports
         if (std::isdigit(static_cast<unsigned char>(c)))
         {
             digits += c;
@@ -68,9 +91,11 @@ int  fetch_config(char *filename)
             break;
     }
 
+    // TODO:
+    //      1- Move to another function that parses ports
     if (digits.empty())
     {
-        std::cerr << "ERROR: No port number foung in config"
+        std::cerr << "ERROR: No port number found in config"
                   << std::endl;
         return (-1);
     }

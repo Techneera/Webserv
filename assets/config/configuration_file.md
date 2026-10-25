@@ -40,7 +40,7 @@
 
 |Request          |Configuration file        | Directory     |
 |-|-|-|
-|http://localhost/ |/location / {root /data/www} |/data/www |
+|http://localhost:8000/homepage.html |/location / {root /data/www} |/data/www/homepage.html |
 |=|=|=|
 |http://localhost/images/image.png|location /images {root /data}|/data/images/image.png|
 |=|=|=|
