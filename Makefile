@@ -6,7 +6,7 @@ FLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDE_FLAGS)
 
 MAIN = main.cpp
 
-CONFIGURATION_FILE = configuration_file/config_tmp.cpp
+CONFIGURATION_FILE = configuration_file/configuration_file.cpp
 
 SIGNAL = signal/signal.cpp
 
@@ -40,7 +40,7 @@ $(NAME): $$(OBJS)
 
 clean:
 	rm -rf $(OBJS) src/*.o
-	rm -rf bin
+	rm -rf build
 
 fclean: clean
 	rm -rf $(NAME)
@@ -56,8 +56,9 @@ debug: all
 # 2 - module main name format: main_<module_name>.cpp
 # 3 - run make test_<module_name>
 _%: fclean
-	@mkdir bin
-	@$(MAKE) FLAGS="-g -Wall -Wextra $(INCLUDE_FLAGS)" MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=bin/%)
+	@mkdir build
+	@$(MAKE) FLAGS="-g -Wall -Wextra $(INCLUDE_FLAGS)" \
+		MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=build/%)
 	rm -rf src/*.o
 
 .PHONY: all clean fclean re
