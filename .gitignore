@@ -44,7 +44,6 @@ build/
 Build/
 build-*/
 bin
-webser*
 
 # CMake generated files
 CMakeFiles/
@@ -73,6 +72,3 @@ Testing/
 CPlusPlus/
 .clangd
 compile_flags.txt
-
-# bear
-compile_commands.json

@@ -1,32 +1,9 @@
 NAME = webserv
-
 COMPILER = c++
-
-FLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDE_FLAGS)
-
+FLAGS = -Wall -Wextra -Werror -std=c++98
 MAIN = main.cpp
-
-CONFIGURATION_FILE = configuration_file/config_tmp.cpp
-
-SIGNAL = signal/signal.cpp
-
-EVENT_LOOP = event_loop/event_loop.cpp
-
-INCLUDES = event_loop \
-		   configuration_file \
-		   signal
-
-INCLUDE = $(INCLUDES:%=src/%)
-
-INCLUDE_FLAGS = $(addprefix -I ,$(INCLUDE))
-
-SCRIPTS = $(MAIN) \
-		  $(CONFIGURATION_FILE) \
-		  $(EVENT_LOOP) \
-		  $(SIGNAL)
-
+SCRIPTS = $(MAIN)
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
-
 OBJS = $(SRCS:.cpp=.o)
 
 all: $(NAME)
@@ -48,16 +25,16 @@ fclean: clean
 re: fclean all
 
 debug: fclean
-debug: FLAGS= -g -Wall -Wextra $(INCLUDE_FLAGS)
+debug: FLAGS= -g -Wall -Wextra
 debug: all
 
 # In order to be able to test several different:
-# 1 - create module main in src dir
-# 2 - module main name format: main_<module_name>.cpp
-# 3 - run make test_<module_name>
+# 1 - create module main
+# 2 - module main name format: _<module_name>.cpp
+# 3 - modules run make test_<module_name>
 _%: fclean
 	@mkdir bin
-	@$(MAKE) FLAGS="-g -Wall -Wextra $(INCLUDE_FLAGS)" MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=bin/%)
+	@$(MAKE) FLAGS="-g -Wall -Wextra" MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=bin/%)
 	rm -rf src/*.o
 
 .PHONY: all clean fclean re
