@@ -67,6 +67,7 @@ static int createListener(int port)
   std::memset(&addr, 0, sizeof(addr));
   addr.sin_family = AF_INET;
   addr.sin_addr.s_addr = htonl(INADDR_ANY); // 0.0.0.0 all interfaces
+                                            // INADDR_LOOPBACK = localhost = 127.0.0.1
   addr.sin_port = htons(port);
 
   if (bind(fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
