@@ -10,6 +10,8 @@ CONFIGURATION_FILE = configuration_file/config_tmp.cpp
 
 SIGNAL = signal/signal.cpp
 
+SERVER = server/server.cpp
+
 EVENT_LOOP = event_loop/event_loop.cpp
 
 INCLUDES = event_loop \
