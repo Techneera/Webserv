@@ -8,7 +8,8 @@ Server::Server()
     this->port = 0;
     this->region = "Unknown";
     this->host = "Unknown";
-    this->errorPages = "";
+    this->errorPages = "Unknown";
+    this->clientMaxBodySize = "Unknown";
 }
 
 // Copy Constructor
@@ -20,6 +21,7 @@ Server::Server(const Server& other)
     this->host = other.host;
     this->errorPages = other.errorPages;
     this->location = other.location;
+    this->clientMaxBodySize = other.clientMaxBodySize;
 }
 
 // Copy Assignment operator
@@ -33,6 +35,7 @@ Server& Server::operator=(const Server& other)
         this->host = other.host;
         this->errorPages = other.errorPages;
         this->location = other.location;
+        this->clientMaxBodySize = other.clientMaxBodySize;
     }
     return (*this);
 }
@@ -44,11 +47,13 @@ Server::~Server()
 }
 
 Server::Server(size_t port, std::string region, std::string host,
-        std::string errorPages, sMap location)
+        std::string errorPages, std::string clientMaxBodySize,
+        sMap location)
 {
     this->port = port;
     this->region = region;
     this->host = host;
     this->errorPages = errorPages;
     this->location = location;
+    this->clientMaxBodySize = clientMaxBodySize;
 }

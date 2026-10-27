@@ -31,6 +31,7 @@ class   Server
             std::string     region; // just messing around, it's not needed, but it's cool
             std::string     host; // ip address string
             std::string     errorPages; // directory of error pages
+            std::string     clientMaxBodySize;
             sMap            location; // to find the directory of a certain page content
 
             /* ORTHODOX CANONICAL FORM */
@@ -45,6 +46,7 @@ class   Server
 
             /* CONSTRUCTORS */
             Server(size_t port, std::string region, std::string host,
-                   std::string errorPages, sMap location);
+                   std::string errorPages, std::string clientMaxBodySize,
+                   sMap location);
 };
 
