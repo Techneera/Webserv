@@ -44,7 +44,6 @@ build/
 Build/
 build-*/
 bin
-webser*
 
 # CMake generated files
 CMakeFiles/
