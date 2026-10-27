@@ -1,28 +1,54 @@
-#include "Class.hpp"
+#include "server.hpp"
 
 // Default Constructor
-Class::Class()
+Server::Server()
 {
     std::cout << CONSTRUCTOR_DEFAULT_MSG(CLASS);
+
+    this->port = 0;
+    this->region = "Unknown";
+    this->host = "Unknown";
+    this->errorPages = "";
 }
 
 // Copy Constructor
-Class::Class(const Class& other)
+Server::Server(const Server& other)
 {
     std::cout << CONSTRUCTOR_COPY_MSG(CLASS);
-    *this = other;
+    this->port = other.port;
+    this->region = other.region;
+    this->host = other.host;
+    this->errorPages = other.errorPages;
+    this->location = other.location;
 }
 
 // Copy Assignment operator
-Class& Class::operator=(const Class& other)
+Server& Server::operator=(const Server& other)
 {
     std::cout << ASSIGNMENT_OPERATOR_COPY_MSG(CLASS);
-    return *this;
+    if (this != &other)
+    {
+        this->port = other.port;
+        this->region = other.region;
+        this->host = other.host;
+        this->errorPages = other.errorPages;
+        this->location = other.location;
+    }
+    return (*this);
 }
 
 // Destructor
-Class::~Class()
+Server::~Server()
 {
     std::cout << DESTRUCTOR_MSG(CLASS);
 }
 
+Server::Server(size_t port, std::string region, std::string host,
+        std::string errorPages, sMap location)
+{
+    this->port = port;
+    this->region = region;
+    this->host = host;
+    this->errorPages = errorPages;
+    this->location = location;
+}
