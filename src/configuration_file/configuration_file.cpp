@@ -1,46 +1,11 @@
-#include <iostream>
 #include <cstring>
-#include <fstream>
 #include <string>
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-// TODO:
-//      1- send this function to a more broader utils module
-//      OR
-//      1- create a wrapper class of std::ifstream
-int peekAndGet(std::ifstream &ifstream, char &c)
-{
-    if (!ifstream.get(c))
-        return (EOF);
-    return (c);
-}
-
-//TODO:
-//      1- Check if, in case of EOF, the file ended correctly
-int consumeSpaces(std::ifstream &ifs, char &c)
-{
-    while (std::isspace(c))
-        if (peekAndGet(ifs, c) == EOF)
-            return (EOF) ;
-
-    return (0);
-}
-
-//TODO:
-//      1- Check if, in case of EOF, the file ended correctly
-int consumeComments(std::ifstream &ifs, char &c)
-{
-    if (c == '#')
-    {
-        while (peekAndGet(ifs, c) != EOF)
-            if (c == '\n')
-                return (c);
-    }
-
-    return (c);
-}
+#include "utils.hpp"
+#include "configuration_file.hpp"
 
 static int stt_parseDirectiveSimple()
 {
@@ -55,17 +20,34 @@ static int stt_parseDirectiveBlock()
     return (0);
 }
 
-/* 1 Iterate untill a space to get the Directive Name
- * 2 Decide if Directive name corresponds to a simple
- *      or block directive
- *      or exit */
-static int stt_parseDirectiveName(std::ifstream &ifs, char &c)
+ // 1 Iterate untill a space to get the Directive Name
+ // 2 Decide if Directive name corresponds to a simple
+ //      or block directive
+ //      or exit
+ // 3 Decide if the directiveName will and how will it
+ //   be saved
+ // TODO: 
+ //      1 - Maybe it makes sense to create a specific data
+ //         structure to save all the information, since when 
+ //         the directive name is valid, it wont return the 
+ //         result until the whole directive is parsed.
+ //         Maybe it makes sense to build a whole directive block
+ //         data strucutre and the directive itself is the tree
+static cfg::D_Block *stt_parseDirective(std::ifstream &ifs, char &c)
 {
-    while (std::isspace(peekAndGet(ifs, c)))
-    {
-    }
+    cfg::D_Block *directive; // Will the new D_block keyworkd allow me
+                             // to simplify the way I 'delete' it??
+                             // Maybe I should crate the destructor then
+    std::string directiveName = "";
+    while (std::isalpha(utils::peekAndGet(ifs, c)))
+        directiveName += c;
 
-    return (0);
+    if (!std::isspace(c))
+        return (NULL);
+
+    // CONTINUE FROM HERE
+
+    return (directive);
 }
 
 // TODO:
@@ -83,20 +65,24 @@ int  fetch_config(char *filename)
         return (-1);
     }
 
+    cfg::D_Block         *directive;
     std::string     digits;
     char            c;
     //bool            started;
 
     while (ifs.get(c))
     {
-        while (std::isspace(c) || c == '\n' || c == '#')
+        // TODO: Will need to check for the comments at least
+        if (std::isalpha(c))
         {
-            if (consumeSpaces(ifs, c) == EOF
-                || consumeComments(ifs, c) == EOF)
-                break ;
+            // Try and parse name to then parse the whole
+            // directive
+            directive = stt_parseDirective(ifs, c);
+            if (directive == NULL)
+                throw (cfg::err_BadDirective);
         }
 
-        // TODO:
+        // (RAFA CODE) TODO: 
         //      1- Move to another function that parses ports
         /*if (std::isdigit(static_cast<unsigned char>(c)))
           {
@@ -107,7 +93,7 @@ int  fetch_config(char *filename)
           break; */
     }
 
-    // TODO:
+    // (RAFA CODE) TODO: 
     //      1- Move to another function that parses ports
     /*if (digits.empty())
       {
@@ -140,5 +126,19 @@ int  fetch_config(char *filename)
 
       return (static_cast<int>(port));*/
     return (8000);
+}
+
+void    cfg::errorPrint(int code)
+{
+    std::cout << "Error: ";
+    switch (code)
+    {
+        case err_BadDirective:
+            std::cout << "Bad directive!\n";
+            break ;
+        default:
+            std::cout << "unknown cause!\n";
+            break ;
+    }
 }
 

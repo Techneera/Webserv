@@ -14,9 +14,12 @@ SERVER = server/server.cpp
 
 EVENT_LOOP = event_loop/event_loop.cpp
 
+UTILS = utils/utils.cpp
+
 INCLUDES = event_loop \
 		   configuration_file \
-		   signal
+		   signal \
+		   utils
 
 INCLUDE = $(INCLUDES:%=src/%)
 
