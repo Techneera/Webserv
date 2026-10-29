@@ -1,19 +1,18 @@
 #pragma once
 
-// INCLUDES -------------------------------------------------
+// INCLUDES ----------------------------------------------
 //
 #include <map>
 #include <iostream>
 
 namespace cfg
 {
-    // DEFINES --------------------------------------------------
+    // DEFINES -------------------------------------------
     //
     #define MAX_S_DIRECTIVE_SIZE 99
+    #define MEMPRY_POOL_SIZE
 
-
-    // TYPES ----------------------------------------------------
-    //
+    // TYPES ---------------------------------------------
     // Errors enums
     enum    e_errors
     {
@@ -21,9 +20,11 @@ namespace cfg
     };
     //
     // Directives names and enums
-    enum    cf_directive
+    enum    d_type
     {
-    }   E_Directive;
+        D_SIMPLE = 0,
+        D_BLOCK = 1,
+    };
     //
     // Directives, simple and block
     // TODO:
@@ -33,6 +34,9 @@ namespace cfg
         std::string name;
         std::string value;
     }   D_Simple;
+
+    // Directive Look Up table
+    typedef std::map<std::string, d_type>  d_table;
 
     // TODO:
     //      1- Review how a d_block will hold the other
@@ -45,15 +49,16 @@ namespace cfg
     //          so its easier to clean it
     typedef struct d_block
     {
+        bool            free;
+        d_type          type;
         std::string     name;
         D_Simple        dSimple[MAX_S_DIRECTIVE_SIZE];
         struct d_block  *next;
     }   D_Block;
 
-    // METHODS --------------------------------------------------
-    // Variables
-
+    // METHODS --------------------------------------------
     // Functions
     int     fetch_config(char *filename);
     void    errorPrint(int code);
+    void    configuration_file_init();
 }
