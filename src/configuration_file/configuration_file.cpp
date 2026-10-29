@@ -7,16 +7,48 @@
 #include "utils.hpp"
 #include "configuration_file.hpp"
 
-static int stt_parseDirectiveSimple()
+static int          poolIdx;
+// TODO:
+//      Might just not return the nodes on the parseDirective funcitons
+//      and just throw the errors if the actual static allocation works
+static cfg::D_Block directivePool[99];
+static cfg::d_table directiveType;
+
+void    cfg::configuration_file_init()
 {
+}
+
+//      1- Blocks contain Directives
+//      2- Blocks start with '{' and end with '}'
+// TODO:
+//      1- Figure out when to skip comments
+static
+cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream ifs, char &c)
+{
+    for (int ret = utils::peekAndGet(ifs, c); c != ';';
+         ret = utils::peekAndGet(ifs, c))
+    {
+        if (ret == EOF)
+            return (NULL);
+    }
+
     return (0);
 }
 
-// TODO:
 //      1- Blocks contain Directives
 //      2- Blocks start with '{' and end with '}'
-static int stt_parseDirectiveBlock()
+// TODO:
+//      1- Figure out when to skip comments
+static
+cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream ifs, char &c)
 {
+    for (int ret = utils::peekAndGet(ifs, c); c != '}';
+         ret = utils::peekAndGet(ifs, c))
+    {
+        if (ret == EOF)
+            return (NULL);
+    }
+
     return (0);
 }
 
@@ -35,9 +67,6 @@ static int stt_parseDirectiveBlock()
  //         data strucutre and the directive itself is the tree
 static cfg::D_Block *stt_parseDirective(std::ifstream &ifs, char &c)
 {
-    cfg::D_Block *directive; // Will the new D_block keyworkd allow me
-                             // to simplify the way I 'delete' it??
-                             // Maybe I should crate the destructor then
     std::string directiveName = "";
     while (std::isalpha(utils::peekAndGet(ifs, c)))
         directiveName += c;
@@ -45,9 +74,7 @@ static cfg::D_Block *stt_parseDirective(std::ifstream &ifs, char &c)
     if (!std::isspace(c))
         return (NULL);
 
-    // CONTINUE FROM HERE
-
-    return (directive);
+    return (directivePool);
 }
 
 // TODO:
@@ -55,7 +82,7 @@ static cfg::D_Block *stt_parseDirective(std::ifstream &ifs, char &c)
 //      2 - Understand when to use the consumers as sometimes
 //          the spaces are meaninful, for example, when trying
 //          to understand what's the name of the directive
-int  fetch_config(char *filename)
+int  cfg::fetch_config(char *filename)
 {
     std::ifstream   ifs(filename);
     if (!ifs)
@@ -65,7 +92,7 @@ int  fetch_config(char *filename)
         return (-1);
     }
 
-    cfg::D_Block         *directive;
+    cfg::D_Block    *directive;
     std::string     digits;
     char            c;
     //bool            started;
