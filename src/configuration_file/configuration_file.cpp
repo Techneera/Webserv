@@ -40,7 +40,9 @@ cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
          ret = utils::peekAndGet(ifs, c))
     {
         if (ret == EOF)
+        {
             return (NULL);
+        }
     }
 
     return (0);
