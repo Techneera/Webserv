@@ -34,7 +34,7 @@ void    cfg::configuration_file_init()
 // TODO:
 //      1- Figure out when to skip comments
 static
-cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream ifs, char &c)
+cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
     for (int ret = utils::peekAndGet(ifs, c); c != ';';
          ret = utils::peekAndGet(ifs, c))
@@ -51,7 +51,7 @@ cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream ifs, char &c)
 // TODO:
 //      1- Figure out when to skip comments
 static
-cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream ifs, char &c)
+cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 {
     for (int ret = utils::peekAndGet(ifs, c); c != '}';
          ret = utils::peekAndGet(ifs, c))
@@ -76,14 +76,25 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream ifs, char &c)
  //         result until the whole directive is parsed.
  //         Maybe it makes sense to build a whole directive block
  //         data strucutre and the directive itself is the tree
+ //      2 - AGAIN, probably it's better to build a throw system and
+ //         just return the  whole directivePool at the end or NULL
 static cfg::D_Block *stt_parseDirective(std::ifstream &ifs, char &c)
 {
-    std::string directiveName = "";
+    cfg::d_table::iterator      it;
+    std::string                 directiveName = "";
+
     while (std::isalpha(utils::peekAndGet(ifs, c)))
         directiveName += c;
 
     if (!std::isspace(c))
         return (NULL);
+
+    if ((it = directiveType.find(directiveName)) == directiveType.end())
+        return  (NULL);
+
+    if (it->second == cfg::D_SIMPLE)
+        return (stt_parseDirectiveSimple(ifs, c));
+    return (stt_parseDirectiveBlock(ifs, c));
 
     return (directivePool);
 }
