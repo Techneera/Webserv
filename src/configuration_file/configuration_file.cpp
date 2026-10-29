@@ -16,6 +16,17 @@ static cfg::d_table directiveType;
 
 void    cfg::configuration_file_init()
 {
+    directiveType["server"] = D_SIMPLE;
+    directiveType["region"] = D_SIMPLE;
+    directiveType["host"] = D_SIMPLE;
+    directiveType["port"] = D_SIMPLE;
+    directiveType["client_max_body_size"] = D_SIMPLE;
+    directiveType["root"] = D_SIMPLE;
+    directiveType["error_pages"] = D_SIMPLE;
+
+    directiveType["server"] = D_BLOCK;
+    directiveType["location"] = D_BLOCK;
+    directiveType["cgi"] = D_BLOCK;
 }
 
 //      1- Blocks contain Directives
