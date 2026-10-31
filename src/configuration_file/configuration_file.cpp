@@ -36,69 +36,81 @@ void    cfg::configuration_file_init()
 static
 cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
-    for (int ret = utils::peekAndGet(ifs, c); c != ';';
-         ret = utils::peekAndGet(ifs, c))
-    {
-        if (ret == EOF)
-        {
-            return (NULL);
-        }
-    }
-
-    return (0);
+    return (NULL);
 }
 
-//      1- Blocks contain Directives
-//      2- Blocks start with '{' and end with '}'
+
+//      1 Iterate untill a space to get the Directive Name
+//      2 Decide if Directive name corresponds to a simple
+//           or block directive
+//           or exit
+//      3 Decide if the directiveName will and how will it
+//        be saved
+//      4- Blocks contain Directives
+//      5- Blocks start with '{' and end with '}'
 // TODO:
 //      1- Figure out when to skip comments
+//      2 - Maybe it makes sense to create a specific data
+//         structure to save all the information, since when 
+//         the directive name is valid, it wont return the 
+//         result until the whole directive is parsed.
+//         Maybe it makes sense to build a whole directive block
+//         data strucutre and the directive itself is the tree
+//      3 - AGAIN, probably it's better to build a throw system and
+//         just return the  whole directivePool at the end or NULL
 static
 cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 {
-    for (int ret = utils::peekAndGet(ifs, c); c != '}';
-         ret = utils::peekAndGet(ifs, c))
+    cfg::d_table::iterator      it;
+    bool                        newToken;
+    int                         i;
+    int                         argCount = 1;
+    std::string                 directiveName;
+
+    while (!(i = std::isspace(utils::peekAndGet(ifs, c))))
     {
-        if (ret == EOF)
+        if (i == EOF)
+            return NULL ;
+        directiveName += c;
+    }
+    if ((it = directiveType.find(directiveName)) == directiveType.end())
+        return  (NULL);
+    if (directiveName == "location")
+        argCount--;
+    while ((i = (utils::peekAndGet(ifs, c))) != '{')
+    {
+        newToken = true;
+        std::string argument = "";
+        while (!(i = std::isspace(utils::peekAndGet(ifs, c))))
+        {
+            if (i == EOF)
+                return NULL ;
+            if (newToken == true)
+            {
+                argCount++;
+                argument += c;
+            }
+            newToken = false;
+        }
+        if (argCount > 1)
             return (NULL);
     }
 
-    return (0);
-}
+    if (argCount != 1)
+        return NULL ;
 
- // 1 Iterate untill a space to get the Directive Name
- // 2 Decide if Directive name corresponds to a simple
- //      or block directive
- //      or exit
- // 3 Decide if the directiveName will and how will it
- //   be saved
- // TODO: 
- //      1 - Maybe it makes sense to create a specific data
- //         structure to save all the information, since when 
- //         the directive name is valid, it wont return the 
- //         result until the whole directive is parsed.
- //         Maybe it makes sense to build a whole directive block
- //         data strucutre and the directive itself is the tree
- //      2 - AGAIN, probably it's better to build a throw system and
- //         just return the  whole directivePool at the end or NULL
-static cfg::D_Block *stt_parseDirective(std::ifstream &ifs, char &c)
-{
-    cfg::d_table::iterator      it;
-    std::string                 directiveName = "";
-
-    while (std::isalpha(utils::peekAndGet(ifs, c)))
-        directiveName += c;
-
-    if (!std::isspace(c))
+    if (i == EOF)
         return (NULL);
-
-    if ((it = directiveType.find(directiveName)) == directiveType.end())
-        return  (NULL);
 
     if (it->second == cfg::D_SIMPLE)
         return (stt_parseDirectiveSimple(ifs, c));
-    return (stt_parseDirectiveBlock(ifs, c));
+    if (it->second == cfg::D_BLOCK)
+        return (stt_parseDirectiveBlock(ifs, c));
 
-    return (directivePool);
+    if (c != '}')
+        return NULL ;
+
+    return (NULL); // return the actual block
 }
 
 // TODO:
@@ -128,7 +140,7 @@ int  cfg::fetch_config(char *filename)
         {
             // Try and parse name to then parse the whole
             // directive
-            directive = stt_parseDirective(ifs, c);
+            directive = stt_parseDirectiveBlock(ifs, c);
             if (directive == NULL)
                 throw (cfg::err_BadDirective);
         }

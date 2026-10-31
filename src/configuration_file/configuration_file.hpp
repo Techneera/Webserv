@@ -52,6 +52,7 @@ namespace cfg
         bool            free;
         d_type          type;
         std::string     name;
+        std::string     argument;
         D_Simple        dSimple[MAX_S_DIRECTIVE_SIZE];
         struct d_block  *next;
     }   D_Block;

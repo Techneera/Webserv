@@ -18,9 +18,10 @@ int utils::consumeSpaces(std::ifstream &ifs, char &c)
     return (0);
 }
 
-int utils::consumeComments(std::ifstream &ifs, char &c)
+int utils::consumeComments(std::ifstream &ifs, char &c,
+                           char &commentBegin)
 {
-    if (c == '#')
+    if (c == commentBegin)
     {
         while (utils::peekAndGet(ifs, c) != EOF)
             if (c == '\n')

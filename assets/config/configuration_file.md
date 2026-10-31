@@ -74,3 +74,23 @@
 
 - `#` marks the start of a comment line
 
+
+# CONFIGURATION FILE PARSER #
+
+- Order of tokens:
+    |order|token|mandatory|
+    |-|-|-|
+    |1|directive name|yes|
+    |=|=|=|
+    |2|directive flag| yes if location|
+    |=|=|=|
+    |3|'{'| yes if block|
+    |=|=|=|
+    |4|
+    |=|=|=|
+    |5|
+    |=|=|=|
+    |=|=|=|
+    |=|=|=|
+    |=|=|=|
+
