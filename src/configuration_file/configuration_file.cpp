@@ -31,23 +31,24 @@ static int  idxSimple = 0;
 
 // what: Look Up table to find if the directive is a valid one
 // type: std::map<std::string, enum>
-static cfg::d_table directiveType;
+static cfg::d_table directiveSimple;
+static cfg::d_table directiveBlock;
 
-// Responsability: Populating a Look Up table as c++98 doesn't allow
+// Responsability: Populating the Look Up table as c++98 doesn't allow
 //                  Initialization of a map container
 void    cfg::configuration_file_init()
 {
-    directiveType["server"] = D_SIMPLE;
-    directiveType["region"] = D_SIMPLE;
-    directiveType["host"] = D_SIMPLE;
-    directiveType["port"] = D_SIMPLE;
-    directiveType["client_max_body_size"] = D_SIMPLE;
-    directiveType["root"] = D_SIMPLE;
-    directiveType["error_pages"] = D_SIMPLE;
+    directiveSimple["server"] = D_SIMPLE;
+    directiveSimple["region"] = D_SIMPLE;
+    directiveSimple["host"] = D_SIMPLE;
+    directiveSimple["port"] = D_SIMPLE;
+    directiveSimple["client_max_body_size"] = D_SIMPLE;
+    directiveSimple["root"] = D_SIMPLE;
+    directiveSimple["error_pages"] = D_SIMPLE;
 
-    directiveType["server"] = D_BLOCK;
-    directiveType["location"] = D_BLOCK;
-    directiveType["cgi"] = D_BLOCK;
+    directiveBlock["server"] = D_BLOCK;
+    directiveBlock["location"] = D_BLOCK;
+    directiveBlock["cgi"] = D_BLOCK;
 }
 
 // Responsability: Consuming any blocks of characters that are
@@ -89,40 +90,40 @@ int consumeNonToken(std::ifstream &ifs, char &c)
 static
 void    stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
-    int         i;
-    std::string name;
-    std::string value;
+    int             i = utils::peekAndGet(ifs, c);
+    std::string     arg;
+    utils::sVector  args;
 
-    if((i = consumeNonToken(ifs, c)) == EOF)
-        throw (static_cast<int>(cfg::err_BadDirectiveSimple));
-
-    name = i;
-    while (!(i = std::isspace(utils::peekAndGet(ifs,c))))
-    {
-        if (i == EOF)
-            throw (2);
-        name += i;
-    }
-
-    if((i = consumeNonToken(ifs, c)) == EOF)
-        throw (static_cast<int>(cfg::err_BadDirectiveSimple));
-
-    value = i;
-    while (!(i = std::isspace(utils::peekAndGet(ifs,c))))
+    while (i != ';')
     {
         if (i == EOF)
             throw (static_cast<int>(cfg::err_BadDirectiveSimple));
-        value += i;
+
+        if((i = consumeNonToken(ifs, c)) == EOF)
+            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+
+        arg = c;
+        while (!(i = std::isspace(utils::peekAndGet(ifs,c))))
+        {
+            if (i == EOF)
+                throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+            if (i != ';')
+                break ;
+            arg += i;
+        }
+        args.push_back(arg);
     }
 
-    if((i = consumeNonToken(ifs, c)) == EOF)
+    cfg::d_table::iterator    it;
+
+    // This verification might be more suitable to the server module
+    if ((it = directiveBlock.find(args[0])) == directiveBlock.end())
         throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
-    if (i != ';')
-        throw (static_cast<int>(cfg::err_BadDirectiveSimple));
-
-    directivePool[idxBlock].dSimple[idxSimple].name = name;
-    directivePool[idxBlock].dSimple[idxSimple].value = value;
+    directivePool[idxBlock].dSimple[idxSimple].name = args[0];
+    directivePool[idxBlock].dSimple[idxSimple].args.insert(
+            directivePool[idxBlock].dSimple[idxSimple].args.end(),
+            args.begin(), args.end());
     idxSimple++;
 }
 
@@ -138,29 +139,50 @@ void    stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 //         data strucutre and the directive itself is the tree
 //      3 - AGAIN, probably it's better to build a throw system and
 //         just return the  whole directivePool at the end or NULL
-static
+    static
 void    stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 {
-    cfg::d_table::iterator      it;
     bool                        newToken;
     int                         i;
     int                         argCount = 1;
-    std::string                 directiveName;
+    std::string                 name;
+    std::string                 argument;
+
+    if((i = consumeNonToken(ifs, c)) == EOF)
+        throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
     while (!(i = std::isspace(utils::peekAndGet(ifs, c))))
     {
         if (i == EOF)
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
-        directiveName += c;
+        name += c;
     }
-    if ((it = directiveType.find(directiveName)) == directiveType.end())
+
+    cfg::d_table::iterator      it;
+
+    if ((it = directiveSimple.find(name)) == directiveSimple.end())
         throw (static_cast<int>(cfg::err_BadDirectiveBlock));
-    if (directiveName == "location")
-        argCount--;
+
+    if (name != "location")
+        goto:
+
+            if((i = consumeNonToken(ifs, c)) == EOF)
+                throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+    argument = i;
+
+    while (!(i = std::isspace(utils::peekAndGet(ifs, c))))
+    {
+        if (i == EOF)
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+        argument += c;
+    }
+
     while ((i = (utils::peekAndGet(ifs, c))) != '{')
     {
+        if (i == EOF)
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+
         newToken = true;
-        std::string argument = "";
         while (!(i = std::isspace(utils::peekAndGet(ifs, c))))
         {
             if (i == EOF)
@@ -183,9 +205,9 @@ void    stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
         throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
     if (it->second == cfg::D_SIMPLE)
-        return (stt_parseDirectiveBlock(ifs, c));
+        stt_parseDirectiveBlock(ifs, c);
     if (it->second == cfg::D_BLOCK)
-        return (stt_parseDirectiveBlock(ifs, c));
+        stt_parseDirectiveBlock(ifs, c);
 
     if (c != '}')
         throw (static_cast<int>(cfg::err_BadDirectiveBlock));
@@ -217,15 +239,15 @@ int  cfg::fetch_config(char *filename)
     if (directive == NULL)
         throw (cfg::err_BadDirective);
 
-        // (RAFA CODE) TODO: 
-        //      1- Move to another function that parses ports
-        /*if (std::isdigit(static_cast<unsigned char>(c)))
-          {
-          digits += c;
-          started = true;
-          }
-          else if (started)
-          break; */
+    // (RAFA CODE) TODO: 
+    //      1- Move to another function that parses ports
+    /*if (std::isdigit(static_cast<unsigned char>(c)))
+      {
+      digits += c;
+      started = true;
+      }
+      else if (started)
+      break; */
 
     // (RAFA CODE) TODO: 
     //      1- Move to another function that parses ports

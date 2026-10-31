@@ -1,9 +1,11 @@
 #pragma once
 
 // INCLUDES ----------------------------------------------
-//
-#include <map>
 #include <iostream>
+#include <map>
+#include <vector>
+
+#include "utils.hpp"
 
 namespace cfg
 {
@@ -34,8 +36,8 @@ namespace cfg
     //      1- Maybe assign  enums instead of names
     typedef struct d_simple
     {
-        std::string name;
-        std::string value;
+        std::string     name;
+        utils::sVector  args;
     }   D_Simple;
 
     // Directive Look Up table
@@ -52,10 +54,8 @@ namespace cfg
     //          so its easier to clean it
     typedef struct d_block
     {
-        bool            free;
-        d_type          type;
         std::string     name;
-        std::string     argument;
+        utils::sVector  args;
         D_Simple        dSimple[MAX_S_DIRECTIVE_SIZE];
         struct d_block  *next;
     }   D_Block;
