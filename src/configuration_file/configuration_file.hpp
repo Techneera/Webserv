@@ -8,15 +8,18 @@
 namespace cfg
 {
     // DEFINES -------------------------------------------
-    //
+    // Max
     #define MAX_S_DIRECTIVE_SIZE 99
-    #define MEMPRY_POOL_SIZE
+    #define MEMORY_POOL_SIZE 99
 
     // TYPES ---------------------------------------------
     // Errors enums
     enum    e_errors
     {
+        err_FileOpening = 0,
         err_BadDirective = 1,
+        err_BadDirectiveSimple = 2,
+        err_BadDirectiveBlock = 3,
     };
     //
     // Directives names and enums

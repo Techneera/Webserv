@@ -6,27 +6,37 @@ int utils::peekAndGet(std::ifstream &ifstream, char &c)
 {
     if (!ifstream.get(c))
         return (EOF);
+
     return (c);
 }
 
+// Responsability: Consumes Spaces of a ifstream
 int utils::consumeSpaces(std::ifstream &ifs, char &c)
 {
-    while (std::isspace(c))
-        if (utils::peekAndGet(ifs, c) == EOF)
-            return (EOF) ;
+    int i;
 
-    return (0);
+    while ((i = std::isspace(peekAndGet(ifs,c))));
+
+    return (i);
 }
 
-int utils::consumeComments(std::ifstream &ifs, char &c,
-                           char &commentBegin)
+// Responsability: Consumes Comments of a ifstream
+int utils::consumeComments(std::ifstream &ifs, char &c)
 {
-    if (c == commentBegin)
-    {
-        while (utils::peekAndGet(ifs, c) != EOF)
-            if (c == '\n')
-                return (c);
-    }
+    int     i;
 
-    return (c);
+    while ((i = utils::peekAndGet(ifs, c)) != '\n')
+        if (i != EOF)
+            break ;
+
+    return (i);
+}
+
+int utils::consumeNewLines(std::ifstream &ifs, char &c)
+{
+    int i;
+
+    while ((i = utils::peekAndGet(ifs, c)) == '\n');
+
+    return (i);
 }

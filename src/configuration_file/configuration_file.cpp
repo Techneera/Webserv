@@ -7,13 +7,34 @@
 #include "utils.hpp"
 #include "configuration_file.hpp"
 
-static int          poolIdx;
+// TODO: replace NULL RETURNS WITH ERROR THROW
+
+// what: static allocated memory pool to save the config file directives
+// type: 
+//      typedef struct d_block
+//      {
+//          bool            free;
+//          d_type          type;
+//          std::string     name;
+//          std::string     argument;
+//          D_Simple        dSimple[MAX_S_DIRECTIVE_SIZE];
+//          struct d_block  *next;
+//      }   D_Block;
 // TODO:
 //      Might just not return the nodes on the parseDirective funcitons
 //      and just throw the errors if the actual static allocation works
-static cfg::D_Block directivePool[99];
+static cfg::D_Block directivePool[MEMORY_POOL_SIZE];
+
+// what: global idex to iterate the memory pool
+static int  idxBlock = 0;
+static int  idxSimple = 0;
+
+// what: Look Up table to find if the directive is a valid one
+// type: std::map<std::string, enum>
 static cfg::d_table directiveType;
 
+// Responsability: Populating a Look Up table as c++98 doesn't allow
+//                  Initialization of a map container
 void    cfg::configuration_file_init()
 {
     directiveType["server"] = D_SIMPLE;
@@ -29,30 +50,84 @@ void    cfg::configuration_file_init()
     directiveType["cgi"] = D_BLOCK;
 }
 
-//      1- Blocks contain Directives
-//      2- Blocks start with '{' and end with '}'
+// Responsability: Consuming any blocks of characters that are
+//                  not relevant for the webserver configuration
+// Algorithm: 1 - Check which is the current char
+//            2 - If current char is '\n', consume any '\n' lines
+//            3 - If current char is '#', consume comment line
+//            4 - If current char is '<space>', consume spaces
+//            5 - Else,  it is the start of a token, so return char
+int consumeNonToken(std::ifstream &ifs, char &c)
+{
+    int     i = utils::peekAndGet(ifs, c);
+
+    while (i != EOF)
+    {
+        if (i == '\n')
+        {
+            i = utils::consumeNewLines(ifs, c);
+        }
+        else if (i == '#')
+        {
+            i = utils::consumeComments(ifs, c);
+        }
+        else if (std::isspace(i))
+        {
+            i = utils::consumeSpaces(ifs, c);
+        }
+        else
+            break ;
+    }
+
+    return i;
+}
+
+// Responsability: Parsing and populating the simple directive struct
+// Algorithm:
 // TODO:
 //      1- Figure out when to skip comments
 static
-cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
+void    stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
-    // HERE
-    while ()
+    int         i;
+    std::string name;
+    std::string value;
+
+    if((i = consumeNonToken(ifs, c)) == EOF)
+        throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+
+    name = i;
+    while (!(i = std::isspace(utils::peekAndGet(ifs,c))))
     {
+        if (i == EOF)
+            throw (2);
+        name += i;
     }
 
-    return (NULL); // need to return the actual directive
+    if((i = consumeNonToken(ifs, c)) == EOF)
+        throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+
+    value = i;
+    while (!(i = std::isspace(utils::peekAndGet(ifs,c))))
+    {
+        if (i == EOF)
+            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+        value += i;
+    }
+
+    if((i = consumeNonToken(ifs, c)) == EOF)
+        throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+
+    if (i != ';')
+        throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+
+    directivePool[idxBlock].dSimple[idxSimple].name = name;
+    directivePool[idxBlock].dSimple[idxSimple].value = value;
+    idxSimple++;
 }
 
-
-//      1 Iterate untill a space to get the Directive Name
-//      2 Decide if Directive name corresponds to a simple
-//           or block directive
-//           or exit
-//      3 Decide if the directiveName will and how will it
-//        be saved
-//      4- Blocks contain Directives
-//      5- Blocks start with '{' and end with '}'
+// Responsability: Parsing and populating the simple block struct
+// Algorithm:
 // TODO:
 //      1- Figure out when to skip comments
 //      2 - Maybe it makes sense to create a specific data
@@ -64,7 +139,7 @@ cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 //      3 - AGAIN, probably it's better to build a throw system and
 //         just return the  whole directivePool at the end or NULL
 static
-cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
+void    stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 {
     cfg::d_table::iterator      it;
     bool                        newToken;
@@ -75,11 +150,11 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
     while (!(i = std::isspace(utils::peekAndGet(ifs, c))))
     {
         if (i == EOF)
-            return NULL ;
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
         directiveName += c;
     }
     if ((it = directiveType.find(directiveName)) == directiveType.end())
-        return  (NULL);
+        throw (static_cast<int>(cfg::err_BadDirectiveBlock));
     if (directiveName == "location")
         argCount--;
     while ((i = (utils::peekAndGet(ifs, c))) != '{')
@@ -89,7 +164,7 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
         while (!(i = std::isspace(utils::peekAndGet(ifs, c))))
         {
             if (i == EOF)
-                return NULL ;
+                throw (static_cast<int>(cfg::err_BadDirectiveBlock));
             if (newToken == true)
             {
                 argCount++;
@@ -98,24 +173,22 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
             newToken = false;
         }
         if (argCount > 1)
-            return (NULL);
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
     }
 
     if (argCount != 1)
-        return NULL ;
+        throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
     if (i == EOF)
-        return (NULL);
+        throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
     if (it->second == cfg::D_SIMPLE)
-        return (stt_parseDirectiveSimple(ifs, c));
+        return (stt_parseDirectiveBlock(ifs, c));
     if (it->second == cfg::D_BLOCK)
         return (stt_parseDirectiveBlock(ifs, c));
 
     if (c != '}')
-        return NULL ;
-
-    return (NULL); // return the actual block
+        throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 }
 
 // TODO:
@@ -132,7 +205,7 @@ int  cfg::fetch_config(char *filename)
     {
         std::cerr << "ERROR: Cannot open config file: "
             << filename << std::endl;
-        return (-1);
+        return (static_cast<int>(err_FileOpening));
     }
 
     cfg::D_Block    *directive;
@@ -197,6 +270,10 @@ void    cfg::errorPrint(int code)
         case err_BadDirective:
             std::cout << "Bad directive!\n";
             break ;
+        case err_BadDirectiveSimple:
+            std::cout << "Bad simple directive structure!\n";
+        case err_BadDirectiveBlock:
+            std::cout << "Bad block directive structure!\n";
         default:
             std::cout << "unknown cause!\n";
             break ;
