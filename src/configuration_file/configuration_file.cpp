@@ -36,7 +36,12 @@ void    cfg::configuration_file_init()
 static
 cfg::D_Block    *stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
-    return (NULL);
+    // HERE
+    while ()
+    {
+    }
+
+    return (NULL); // need to return the actual directive
 }
 
 
