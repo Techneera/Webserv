@@ -120,6 +120,8 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 //          to understand what's the name of the directive
 int  cfg::fetch_config(char *filename)
 {
+    cfg::configuration_file_init();
+
     std::ifstream   ifs(filename);
     if (!ifs)
     {
@@ -133,17 +135,9 @@ int  cfg::fetch_config(char *filename)
     char            c;
     //bool            started;
 
-    while (ifs.get(c))
-    {
-        // TODO: Will need to check for the comments at least
-        if (std::isalpha(c))
-        {
-            // Try and parse name to then parse the whole
-            // directive
-            directive = stt_parseDirectiveBlock(ifs, c);
-            if (directive == NULL)
-                throw (cfg::err_BadDirective);
-        }
+    directive = stt_parseDirectiveBlock(ifs, c);
+    if (directive == NULL)
+        throw (cfg::err_BadDirective);
 
         // (RAFA CODE) TODO: 
         //      1- Move to another function that parses ports
@@ -154,7 +148,6 @@ int  cfg::fetch_config(char *filename)
           }
           else if (started)
           break; */
-    }
 
     // (RAFA CODE) TODO: 
     //      1- Move to another function that parses ports
