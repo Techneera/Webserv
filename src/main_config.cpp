@@ -19,20 +19,22 @@ int main(int argc, char **argv)
   //        2 - Maybe give it struct address to populate with 
   //            necessary instructions/info suchs as port,
   //            or file dir
-  int   port;
+  cfg::D_Block  *config;
 
   try
   {
-    port = cfg::fetch_config(argv[1]);
+    config = cfg::fetch_config(argv[1]);
   }
   catch (...)
   {
       std::cerr << "Error: could not parse config_file\n";
   }
-  if (port < 0)
+
+  // TODO: insert this Rafael code in the server module
+  /*if (port < 0)
   {
       std::cerr << "ERROR: Failed reading port from config"
                 << std::endl;
       return (-1);
-  }
+  }*/
 }

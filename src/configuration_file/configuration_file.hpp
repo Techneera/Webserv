@@ -62,7 +62,7 @@ namespace cfg
 
     // METHODS --------------------------------------------
     // Functions
-    int     fetch_config(char *filename);
+    D_Block *fetch_config(char *filename);
     void    errorPrint(int code);
     void    configuration_file_init();
 }
