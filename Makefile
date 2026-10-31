@@ -8,13 +8,16 @@ MAIN = main.cpp
 
 CONFIGURATION_FILE = configuration_file/config_tmp.cpp
 
+HTTP = http/HttpParser.cpp
+
 SIGNAL = signal/signal.cpp
 
 EVENT_LOOP = event_loop/event_loop.cpp
 
 INCLUDES = event_loop \
 		   configuration_file \
-		   signal
+		   signal \
+		   http
 
 INCLUDE = $(INCLUDES:%=src/%)
 
