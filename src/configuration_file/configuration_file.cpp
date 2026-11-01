@@ -89,13 +89,13 @@ int consumeNonToken(std::ifstream &ifs, char &c)
 static
 int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
 {
-    c = utils::get(ifs, c);
-    token = c;
-    while (c != '#' && c != '\n' && c != ';' && c != '}' && c != '{')
+    token = "";
+    while (c != '#' && c != '\n' && c != ';' && c != '}' && c != '{'
+            && !std::isspace(c))
     {
+        token += c;
         if (utils::get(ifs, c) == EOF)
             return EOF;
-        token += c;
     }
 
     return (1);
@@ -114,6 +114,9 @@ int stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 
     if (stt_parseToken(ifs, c, arg) == EOF)
         return (EOF);
+
+    if (c == ';' || c == '}' || c == '{')
+        return (-1);
 
     if (utils::consumeSpaces(ifs, c) == EOF)
         return (EOF);
@@ -135,7 +138,7 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
         if (consumeNonToken(ifs, c) == EOF)
             return (EOF);
 
-        if (c != ';' && c != '}' && c != '{')
+        if (c == ';' || c == '}' || c == '{')
             return (-1);
 
         if (stt_parseToken(ifs, c, arg) == EOF)
@@ -155,13 +158,19 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
             return (-1);
     }
 
+    utils::get(ifs, c);
+
     return (1);
 }
 
-static
-int stt_parseDirectiveNew(std::ifstream &ifs, char &c)
+    static
+void stt_parseDirectiveNew(std::ifstream &ifs, char &c)
 {
-    return (1);
+    while (1)
+    {
+        if (stt_parseDirectiveBlock(ifs, c) == EOF)
+            break ;
+    }
 }
 
 
@@ -177,7 +186,7 @@ int stt_parseDirectiveNew(std::ifstream &ifs, char &c)
 //         data strucutre and the directive itself is the tree
 //      3 - AGAIN, probably it's better to build a throw system and
 //         just return the  whole directivePool at the end or NULL
-static
+    static
 void    stt_parseDirective(std::ifstream &ifs, char &c)
 {
     int             i = consumeNonToken(ifs, c);
@@ -242,7 +251,7 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
         throw(static_cast<int>(cfg::err_BadDirective));
 }
 
-static
+    static
 void    stt_parseConfig(std::ifstream ifs, char &c)
 {
 }
@@ -268,12 +277,15 @@ cfg::D_Block  *cfg::fetch_config(char *filename)
     char            c;
     //bool          started;
 
-    while (1)
-    {
-        stt_parseDirective(ifs, c);
-        if (ifs.peek() == EOF)
-            break ;
-    }
+    /*while (1)
+      {
+      stt_parseDirective(ifs, c);
+      if (ifs.peek() == EOF)
+      break ;
+      }*/
+
+    stt_parseDirectiveNew(ifs, c);
+
     return (directivePool);
 
     // (RAFA CODE) TODO: 
