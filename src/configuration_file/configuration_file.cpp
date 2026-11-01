@@ -60,7 +60,7 @@ void    cfg::configuration_file_init()
 //            5 - Else,  it is the start of a token, so return char
 int consumeNonToken(std::ifstream &ifs, char &c)
 {
-    int     i = utils::peekAndGet(ifs, c);
+    int     i = utils::get(ifs, c);
 
     while (i != EOF)
     {
@@ -103,6 +103,8 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
     utils::sVector  args;
 
 
+    if (c == '}')
+        return ;
     while (c != '{' && c != ';')
     {
         if(i == EOF)
@@ -116,8 +118,9 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
             break ;
 
         arg = c;
-        while ((i = utils::peekAndGet(ifs, c)))
+        while (!std::isspace(c))
         {
+            i = utils::get(ifs, c);
             if (i == EOF)
                 throw (static_cast<int>(cfg::err_BadDirectiveBlock));
             if (c == '{' || c == ';' || c == '#'
@@ -142,11 +145,9 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
         directivePool[idxBlock].args.insert(
                 directivePool[idxBlock].args.end(),
                 args.begin() + 1, args.end());
+
         while (c != '}')
-        {
             stt_parseDirective(ifs, c);
-            i = utils::peekAndGet(ifs, c);
-        }
     }
     else if (it->second == cfg::D_SIMPLE)
     {
@@ -154,6 +155,7 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
         directivePool[idxBlock].dSimple[idxSimple].args.insert(
                 directivePool[idxBlock].dSimple[idxSimple].args.end(),
                 args.begin() + 1, args.end());
+
         idxSimple++;
     }
     else

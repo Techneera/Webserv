@@ -2,7 +2,7 @@
 
 // 1 - Assigns next char to c
 // 2 - Returns next char through c
-int utils::peekAndGet(std::ifstream &ifstream, char &c)
+int utils::get(std::ifstream &ifstream, char &c)
 {
     if (!ifstream.get(c))
         return (EOF);
@@ -15,7 +15,11 @@ int utils::consumeSpaces(std::ifstream &ifs, char &c)
 {
     int i;
 
-    while ((i = std::isspace(peekAndGet(ifs,c))));
+    while ((i = get(ifs, c)) != EOF)
+    {
+        if (!std::isspace(c))
+            break ;
+    }
 
     return (i);
 }
@@ -25,7 +29,7 @@ int utils::consumeComments(std::ifstream &ifs, char &c)
 {
     int     i;
 
-    while ((i = utils::peekAndGet(ifs, c)) != '\n')
+    while ((i = utils::get(ifs, c)) != '\n')
         if (i != EOF)
             break ;
 
@@ -36,7 +40,7 @@ int utils::consumeNewLines(std::ifstream &ifs, char &c)
 {
     int i;
 
-    while ((i = utils::peekAndGet(ifs, c)) == '\n');
+    while ((i = utils::get(ifs, c)) == '\n');
 
     return (i);
 }
