@@ -36,6 +36,9 @@ static cfg::d_table directiveBlock;
 
 // Responsability: Populating the Look Up table as c++98 doesn't allow
 //                  Initialization of a map container
+// TODO:
+//      1 - Maybe make the look up table have more values for multiple
+//          keys so theres further validation of each directive
 void    cfg::configuration_file_init()
 {
     directiveSimple["listen"] = D_SIMPLE;
@@ -82,6 +85,85 @@ int consumeNonToken(std::ifstream &ifs, char &c)
 
     return i;
 }
+
+static
+int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
+{
+    c = utils::get(ifs, c);
+    token = c;
+    while (c != '#' && c != '\n' && c != ';' && c != '}' && c != '{')
+    {
+        if (utils::get(ifs, c) == EOF)
+            return EOF;
+        token += c;
+    }
+
+    return (1);
+}
+
+static
+int stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
+{
+    if (consumeNonToken(ifs, c) == EOF)
+        return (EOF);
+
+    if (c != '#' && c != '\n' && c != ';' && c != '}' && c != '{')
+        return (1);
+
+    std::string arg;
+
+    if (stt_parseToken(ifs, c, arg) == EOF)
+        return (EOF);
+
+    if (utils::consumeSpaces(ifs, c) == EOF)
+        return (EOF);
+
+    if (c != ';')
+        return (-1);
+
+    return (1);
+}
+
+static
+int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
+{
+    std::string     arg;
+    utils::sVector  args;
+
+    while (c != '}')
+    {
+        if (consumeNonToken(ifs, c) == EOF)
+            return (EOF);
+
+        if (c != ';' && c != '}' && c != '{')
+            return (-1);
+
+        if (stt_parseToken(ifs, c, arg) == EOF)
+            return (EOF);
+
+        cfg::d_table::iterator      it;
+
+        if ((it = directiveBlock.find(arg)) == directiveBlock.end())
+        {
+            if (consumeNonToken(ifs, c) == EOF)
+                return (EOF);
+            stt_parseDirectiveBlock(ifs, c);
+        }
+        else if((it = directiveSimple.find(arg)) == directiveSimple.end())
+            stt_parseDirectiveSimple(ifs, c);
+        else
+            return (-1);
+    }
+
+    return (1);
+}
+
+static
+int stt_parseDirectiveNew(std::ifstream &ifs, char &c)
+{
+    return (1);
+}
+
 
 // Responsability: Parsing and populating the simple block struct
 // Algorithm:
@@ -145,28 +227,24 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
         directivePool[idxBlock].args.insert(
                 directivePool[idxBlock].args.end(),
                 args.begin() + 1, args.end());
-
-        while (1)
-        {
-            if (c == '}')
-            {
-                ifs.get(c);
-                break ;
-            }
-            stt_parseDirective(ifs, c);
-        }
+        stt_parseDirective(ifs, c);
     }
     else if (it->second == cfg::D_SIMPLE)
     {
+        idxSimple++;
         directivePool[idxBlock].dSimple[idxSimple].name = args[0];
         directivePool[idxBlock].dSimple[idxSimple].args.insert(
                 directivePool[idxBlock].dSimple[idxSimple].args.end(),
                 args.begin() + 1, args.end());
-
-        idxSimple++;
+        stt_parseDirective(ifs, c);
     }
     else
         throw(static_cast<int>(cfg::err_BadDirective));
+}
+
+static
+void    stt_parseConfig(std::ifstream ifs, char &c)
+{
 }
 
 // TODO:
@@ -188,7 +266,7 @@ cfg::D_Block  *cfg::fetch_config(char *filename)
 
     std::string     digits;
     char            c;
-    //bool            started;
+    //bool          started;
 
     while (1)
     {

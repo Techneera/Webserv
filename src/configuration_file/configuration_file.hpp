@@ -57,6 +57,7 @@ namespace cfg
         std::string     name;
         utils::sVector  args;
         D_Simple        dSimple[MAX_S_DIRECTIVE_SIZE];
+        struct d_block  *next;
     }   D_Block;
 
     // METHODS --------------------------------------------
