@@ -12,6 +12,7 @@
  */
 enum ParsingStage_e
 {
+    STATE_NOT_STARTED_e,
     STATE_REQUEST_LINE_e,
     STATE_FIELD_LINE_e,
     STATE_MESSAGE_BODY_e
@@ -35,14 +36,14 @@ enum ParsingResult_e
  * Processes incoming HTTP request data incrementally,
  * maintaining parsing progress between feed() calls.
  *
- * HttpParser owns the HttpRequest instance and controls
+ * HttpParser owns the HttpRequest_t instance and controls
  * its lifetime. External access is provided through
  * a constant reference once parsing is complete.
  */
 class HttpParser
 {
     private:
-        HttpRequest*    request;
+        HttpRequest_t*  request;
         ParsingResult_e result;
         ParsingStage_e  stage;
         std::string     data;
@@ -96,7 +97,7 @@ class HttpParser
          * @throws std::logic_error if parsing is incomplete
          *         or has failed.
          */
-        const HttpRequest& getRequest() const;
+        const HttpRequest_t& getRequest() const;
 };
 
 #endif
