@@ -26,7 +26,8 @@ INCLUDE_FLAGS = $(addprefix -I ,$(INCLUDE))
 SCRIPTS = $(MAIN) \
 		  $(CONFIGURATION_FILE) \
 		  $(EVENT_LOOP) \
-		  $(SIGNAL)
+		  $(SIGNAL) \
+		  $(HTTP)
 
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
 
