@@ -146,8 +146,15 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
                 directivePool[idxBlock].args.end(),
                 args.begin() + 1, args.end());
 
-        while (c != '}')
+        while (1)
+        {
+            if (c == '}')
+            {
+                ifs.get(c);
+                break ;
+            }
             stt_parseDirective(ifs, c);
+        }
     }
     else if (it->second == cfg::D_SIMPLE)
     {
@@ -183,7 +190,12 @@ cfg::D_Block  *cfg::fetch_config(char *filename)
     char            c;
     //bool            started;
 
-    stt_parseDirective(ifs, c);
+    while (1)
+    {
+        stt_parseDirective(ifs, c);
+        if (ifs.peek() == EOF)
+            break ;
+    }
     return (directivePool);
 
     // (RAFA CODE) TODO: 
