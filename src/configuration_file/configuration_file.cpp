@@ -31,8 +31,7 @@ static int  idxSimple = 0;
 
 // what: Look Up table to find if the directive is a valid one
 // type: std::map<std::string, enum>
-static cfg::d_table directiveSimple;
-static cfg::d_table directiveBlock;
+static cfg::d_table directiveTable;
 
 // Responsability: Populating the Look Up table as c++98 doesn't allow
 //                  Initialization of a map container
@@ -41,17 +40,17 @@ static cfg::d_table directiveBlock;
 //          keys so theres further validation of each directive
 void    cfg::configuration_file_init()
 {
-    directiveSimple["listen"] = D_SIMPLE;
-    directiveSimple["region"] = D_SIMPLE;
-    directiveSimple["host"] = D_SIMPLE;
-    directiveSimple["port"] = D_SIMPLE;
-    directiveSimple["client_max_body_size"] = D_SIMPLE;
-    directiveSimple["root"] = D_SIMPLE;
-    directiveSimple["error_pages"] = D_SIMPLE;
+    directiveTable["listen"] = D_SIMPLE;
+    directiveTable["region"] = D_SIMPLE;
+    directiveTable["host"] = D_SIMPLE;
+    directiveTable["port"] = D_SIMPLE;
+    directiveTable["client_max_body_size"] = D_SIMPLE;
+    directiveTable["root"] = D_SIMPLE;
+    directiveTable["error_pages"] = D_SIMPLE;
 
-    directiveBlock["server"] = D_BLOCK;
-    directiveBlock["location"] = D_BLOCK;
-    directiveBlock["cgi"] = D_BLOCK;
+    directiveTable["server"] = D_BLOCK;
+    directiveTable["location"] = D_BLOCK;
+    directiveTable["cgi"] = D_BLOCK;
 }
 
 // Responsability: Consuming any blocks of characters that are
@@ -63,7 +62,10 @@ void    cfg::configuration_file_init()
 //            5 - Else,  it is the start of a token, so return char
 int consumeNonToken(std::ifstream &ifs, char &c)
 {
-    int     i = utils::get(ifs, c);
+    int i = ifs.peek();
+
+    if  (i != '\n' && i != '#' && !std::isspace(c))
+        return (utils::get(ifs, c));
 
     while (i != EOF)
     {
@@ -90,8 +92,9 @@ static
 int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
 {
     token = "";
-    while (c != '#' && c != '\n' && c != ';' && c != '}' && c != '{'
-            && !std::isspace(c))
+
+    while (c != '#' && c != '\n' && c != ';' && c != '}'
+            && c != '{' && !std::isspace(c))
     {
         token += c;
         if (utils::get(ifs, c) == EOF)
@@ -101,39 +104,100 @@ int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
     return (1);
 }
 
-static
+    static
 int stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
-{
-    if (consumeNonToken(ifs, c) == EOF)
-        return (EOF);
-
-    if (c != '#' && c != '\n' && c != ';' && c != '}' && c != '{')
-        return (1);
-
-    std::string arg;
-
-    if (stt_parseToken(ifs, c, arg) == EOF)
-        return (EOF);
-
-    if (c == ';' || c == '}' || c == '{')
-        return (-1);
-
-    if (utils::consumeSpaces(ifs, c) == EOF)
-        return (EOF);
-
-    if (c != ';')
-        return (-1);
-
-    return (1);
-}
-
-static
-int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 {
     std::string     arg;
     utils::sVector  args;
 
+    while (1)
+    {
+        if (c == '#' || c == '\n' || c == '}' || c == '{')
+            return (-1);
+
+        if (utils::consumeSpaces(ifs, c) == EOF)
+            return (EOF);
+
+        if (c == '#' || c == '\n' || c == ';' || c == '}'
+                || c == '{')
+            return (1);
+
+        if (stt_parseToken(ifs, c, arg) == EOF)
+            return (EOF);
+
+        if (c == '}' || c == '{')
+            return (-1);
+
+        if (c == ';')
+            return (utils::get(ifs, c));
+    }
+}
+
+    static
+int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
+{
+    if (c != '{')
+        return (-1);
+
+    if (!ifs.get(c))
+        return (EOF);
+
+    std::string     arg;
+    utils::sVector  args;
+
     while (c != '}')
+    {
+        if (consumeNonToken(ifs, c) == EOF)
+            return (EOF);
+
+        if (c == '}')
+            return (utils::get(ifs, c));
+
+        if (c == ';' || c == '{')
+            return (-1);
+
+        if (stt_parseToken(ifs, c, arg) == EOF)
+            return (EOF);
+
+        cfg::d_table::iterator      it;
+
+        if ((it = directiveTable.find(arg)) == directiveTable.end())
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+
+        if (it->second == cfg::D_BLOCK)
+        {
+            if (consumeNonToken(ifs, c) == EOF)
+                return (EOF);
+
+            if (arg == "location")
+            {
+                if (stt_parseToken(ifs, c, arg) == EOF)
+                    return (EOF);
+
+                if (consumeNonToken(ifs, c) == EOF)
+                    return (EOF);
+            }
+            stt_parseDirectiveBlock(ifs, c);
+        }
+        else if(it->second == cfg::D_SIMPLE)
+        {
+            stt_parseDirectiveSimple(ifs, c);
+        }
+        else
+            return (-1);
+    }
+
+    utils::get(ifs, c);
+
+    return (1);
+}
+
+    static
+int stt_parseConfig(std::ifstream &ifs, char &c)
+{
+    std::string arg;
+
+    while (1)
     {
         if (consumeNonToken(ifs, c) == EOF)
             return (EOF);
@@ -146,34 +210,17 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 
         cfg::d_table::iterator      it;
 
-        // TODO:
-        //      1 - Enter in the proper function. this verification
-        //          is currently detecting if the arg doesnt belong
-        //          so its written in a buggy way now
-        if ((it = directiveBlock.find(arg)) == directiveBlock.end())
+        if ((it = directiveTable.find(arg)) == directiveTable.end())
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+
+        if (it->second == cfg::D_BLOCK)
         {
             if (consumeNonToken(ifs, c) == EOF)
                 return (EOF);
             stt_parseDirectiveBlock(ifs, c);
         }
-        else if((it = directiveSimple.find(arg)) == directiveSimple.end())
-            stt_parseDirectiveSimple(ifs, c);
         else
-            return (-1);
-    }
-
-    utils::get(ifs, c);
-
-    return (1);
-}
-
-    static
-void stt_parseDirectiveNew(std::ifstream &ifs, char &c)
-{
-    while (1)
-    {
-        if (stt_parseDirectiveBlock(ifs, c) == EOF)
-            break ;
+            throw (static_cast<int>(cfg::err_BadConfig));
     }
 }
 
@@ -228,8 +275,8 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
 
     cfg::d_table::iterator      it;
 
-    if ((it = directiveBlock.find(args[0])) == directiveBlock.end())
-        if ((it = directiveSimple.find(args[0])) == directiveSimple.end())
+    if ((it = directiveTable.find(args[0])) == directiveTable.end())
+        if ((it = directiveTable.find(args[0])) == directiveTable.end())
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
     if (it->second == cfg::D_BLOCK)
@@ -253,11 +300,6 @@ void    stt_parseDirective(std::ifstream &ifs, char &c)
     }
     else
         throw(static_cast<int>(cfg::err_BadDirective));
-}
-
-    static
-void    stt_parseConfig(std::ifstream ifs, char &c)
-{
 }
 
 // TODO:
@@ -288,7 +330,7 @@ cfg::D_Block  *cfg::fetch_config(char *filename)
       break ;
       }*/
 
-    stt_parseDirectiveNew(ifs, c);
+    stt_parseConfig(ifs, c);
 
     return (directivePool);
 
@@ -348,6 +390,8 @@ void    cfg::errorPrint(int code)
             std::cout << "Bad simple directive structure!\n";
         case err_BadDirectiveBlock:
             std::cout << "Bad block directive structure!\n";
+        case err_BadConfig:
+            std::cout << "Expecting block directive!\n";
         default:
             std::cout << "unknown cause!\n";
             break ;

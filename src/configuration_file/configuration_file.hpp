@@ -19,9 +19,10 @@ namespace cfg
     enum    e_errors
     {
         err_FileOpening = 0,
-        err_BadDirective = 1,
-        err_BadDirectiveSimple = 2,
-        err_BadDirectiveBlock = 3,
+        err_BadConfig = 1,
+        err_BadDirective = 2,
+        err_BadDirectiveSimple = 3,
+        err_BadDirectiveBlock = 4,
     };
     //
     // Directives names and enums
