@@ -146,6 +146,10 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 
         cfg::d_table::iterator      it;
 
+        // TODO:
+        //      1 - Enter in the proper function. this verification
+        //          is currently detecting if the arg doesnt belong
+        //          so its written in a buggy way now
         if ((it = directiveBlock.find(arg)) == directiveBlock.end())
         {
             if (consumeNonToken(ifs, c) == EOF)
