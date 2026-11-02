@@ -53,6 +53,55 @@ void    cfg::configuration_file_init()
     directiveTable["cgi"] = D_BLOCK;
 }
 
+// 1 - Assigns next char to c
+// 2 - Returns next char through c
+static
+int stt_get(std::ifstream &ifstream, char &c)
+{
+    if (!ifstream.get(c))
+        return (EOF);
+
+    return (c);
+}
+
+// Responsability: Consumes Spaces of a ifstream
+static
+int stt_consumeSpaces(std::ifstream &ifs, char &c)
+{
+    int i;
+
+    while ((i = stt_get(ifs, c)) != EOF)
+    {
+        if (!std::isspace(c))
+            break ;
+    }
+
+    return (i);
+}
+
+// Responsability: Consumes Comments of a ifstream
+static
+int stt_consumeComments(std::ifstream &ifs, char &c)
+{
+    int     i;
+
+    while ((i = stt_get(ifs, c)) != '\n')
+        if (i == EOF)
+            break ;
+
+    return (i);
+}
+
+static
+int stt_consumeNewLines(std::ifstream &ifs, char &c)
+{
+    int i;
+
+    while ((i = stt_get(ifs, c)) == '\n');
+
+    return (i);
+}
+
 // Responsability: Consuming any blocks of characters that are
 //                  not relevant for the webserver configuration
 // Algorithm: 1 - Check which is the current char
@@ -62,24 +111,24 @@ void    cfg::configuration_file_init()
 //            5 - Else,  it is the start of a token, so return char
 int consumeNonToken(std::ifstream &ifs, char &c)
 {
-    int i = ifs.peek();
+    int i;
 
-    if  (i != '\n' && i != '#' && !std::isspace(c))
-        return (utils::get(ifs, c));
+    if  (c != '\n' && c != '#' && !std::isspace(c))
+        return  (c);
 
-    while (i != EOF)
+    while (c != EOF)
     {
         if (c == '\n')
         {
-            i = utils::consumeNewLines(ifs, c);
+            i = stt_consumeNewLines(ifs, c);
         }
         else if (c == '#')
         {
-            i = utils::consumeComments(ifs, c);
+            i = stt_consumeComments(ifs, c);
         }
         else if (std::isspace(c))
         {
-            i = utils::consumeSpaces(ifs, c);
+            i = stt_consumeSpaces(ifs, c);
         }
         else
             break ;
@@ -97,7 +146,7 @@ int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
             && c != '{' && !std::isspace(c))
     {
         token += c;
-        if (utils::get(ifs, c) == EOF)
+        if (stt_get(ifs, c) == EOF)
             return EOF;
     }
 
@@ -113,9 +162,9 @@ int stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
     while (1)
     {
         if (c == '#' || c == '\n' || c == '}' || c == '{')
-            return (-1);
+            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
-        if (utils::consumeSpaces(ifs, c) == EOF)
+        if (stt_consumeSpaces(ifs, c) == EOF)
             return (EOF);
 
         if (c == '#' || c == '\n' || c == ';' || c == '}'
@@ -126,10 +175,10 @@ int stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
             return (EOF);
 
         if (c == '}' || c == '{')
-            return (-1);
+            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
         if (c == ';')
-            return (utils::get(ifs, c));
+            return (stt_get(ifs, c));
     }
 }
 
@@ -137,7 +186,7 @@ int stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 {
     if (c != '{')
-        return (-1);
+        throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
     if (!ifs.get(c))
         return (EOF);
@@ -151,10 +200,10 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
             return (EOF);
 
         if (c == '}')
-            return (utils::get(ifs, c));
+            return (stt_get(ifs, c));
 
         if (c == ';' || c == '{')
-            return (-1);
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
         if (stt_parseToken(ifs, c, arg) == EOF)
             return (EOF);
@@ -184,10 +233,10 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
             stt_parseDirectiveSimple(ifs, c);
         }
         else
-            return (-1);
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
     }
 
-    utils::get(ifs, c);
+    stt_get(ifs, c);
 
     return (1);
 }
@@ -199,11 +248,14 @@ int stt_parseConfig(std::ifstream &ifs, char &c)
 
     while (1)
     {
+        if (!ifs.get(c))
+            return (EOF);
+
         if (consumeNonToken(ifs, c) == EOF)
             return (EOF);
 
         if (c == ';' || c == '}' || c == '{')
-            return (-1);
+            throw (static_cast<int>(cfg::err_BadDirective));
 
         if (stt_parseToken(ifs, c, arg) == EOF)
             return (EOF);
@@ -222,84 +274,6 @@ int stt_parseConfig(std::ifstream &ifs, char &c)
         else
             throw (static_cast<int>(cfg::err_BadConfig));
     }
-}
-
-
-// Responsability: Parsing and populating the simple block struct
-// Algorithm:
-// TODO:
-//      1- Figure out when to skip comments
-//      2 - Maybe it makes sense to create a specific data
-//         structure to save all the information, since when 
-//         the directive name is valid, it wont return the 
-//         result until the whole directive is parsed.
-//         Maybe it makes sense to build a whole directive block
-//         data strucutre and the directive itself is the tree
-//      3 - AGAIN, probably it's better to build a throw system and
-//         just return the  whole directivePool at the end or NULL
-    static
-void    stt_parseDirective(std::ifstream &ifs, char &c)
-{
-    int             i = consumeNonToken(ifs, c);
-    std::string     arg;
-    utils::sVector  args;
-
-
-    if (c == '}')
-        return ;
-    while (c != '{' && c != ';')
-    {
-        if(i == EOF)
-            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
-
-        if ( c == '\n' || c == '#' || std::isspace(c))
-            if((i = consumeNonToken(ifs, c)) == EOF)
-                throw (static_cast<int>(cfg::err_BadDirectiveBlock));
-
-        if (c == '{' || c == ';')
-            break ;
-
-        arg = c;
-        while (!std::isspace(c))
-        {
-            i = utils::get(ifs, c);
-            if (i == EOF)
-                throw (static_cast<int>(cfg::err_BadDirectiveBlock));
-            if (c == '{' || c == ';' || c == '#'
-                    || c == '\n' || std::isspace(c))
-                break ;
-            arg += c;
-        }
-        args.push_back(arg);
-    }
-
-    cfg::d_table::iterator      it;
-
-    if ((it = directiveTable.find(args[0])) == directiveTable.end())
-        if ((it = directiveTable.find(args[0])) == directiveTable.end())
-            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
-
-    if (it->second == cfg::D_BLOCK)
-    {
-        idxBlock++;
-        idxSimple = 0;
-        directivePool[idxBlock].name = args[0];
-        directivePool[idxBlock].args.insert(
-                directivePool[idxBlock].args.end(),
-                args.begin() + 1, args.end());
-        stt_parseDirective(ifs, c);
-    }
-    else if (it->second == cfg::D_SIMPLE)
-    {
-        idxSimple++;
-        directivePool[idxBlock].dSimple[idxSimple].name = args[0];
-        directivePool[idxBlock].dSimple[idxSimple].args.insert(
-                directivePool[idxBlock].dSimple[idxSimple].args.end(),
-                args.begin() + 1, args.end());
-        stt_parseDirective(ifs, c);
-    }
-    else
-        throw(static_cast<int>(cfg::err_BadDirective));
 }
 
 // TODO:
@@ -322,13 +296,6 @@ cfg::D_Block  *cfg::fetch_config(char *filename)
     std::string     digits;
     char            c;
     //bool          started;
-
-    /*while (1)
-      {
-      stt_parseDirective(ifs, c);
-      if (ifs.peek() == EOF)
-      break ;
-      }*/
 
     stt_parseConfig(ifs, c);
 
