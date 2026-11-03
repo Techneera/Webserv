@@ -7,16 +7,21 @@
 
 #include "utils.hpp"
 
+// @name:   namespace cfg
+// @brief:  A namespace that defines several methods(functions,
+//              typedefs..) for the configuration file module.
+//          The configuration module aims to implement a parser
+//              that will provide the necessary structured
+//              data for the instantiation of the server class
 namespace cfg
 {
     // DEFINES -------------------------------------------
-    // Max
-    #define MAX_S_DIRECTIVE_SIZE 99
-    #define MEMORY_POOL_SIZE 99
-    #define MAX_DIRECTIVES 99
 
+
+    // ---------------------------------------------------
     // TYPES ---------------------------------------------
-    // Errors enums
+
+    // @brief:  Error number codes for throwing errors
     enum    e_errors
     {
         err_FileOpening = 0,
@@ -26,47 +31,47 @@ namespace cfg
         err_BadDirectiveBlock = 4,
         err_BigConfig = 5,
     };
-    //
-    // Directives names and enums
+
+    // @brief:  A simple enum for easy of use when checking
+    //              the type of directive that is found
+    //              on a look up table
     enum    d_type
     {
         D_SIMPLE = 0,
         D_BLOCK = 1,
     };
-    //
-    // Directives, simple and block
-    // TODO:
-    //      1- Maybe assign  enums instead of names
+
+    // @brief:  std::map based look up table that serves
+    //              as a quick way to validate any directive
+    //              found on the configuration file
+    typedef std::map<std::string, d_type>  d_table;
+
+    // @brief:  Holds the Simple Directive data
     typedef struct d_simple
     {
         std::string     name;
         utils::sVector  args;
     }   D_Simple;
 
-    // Directive Look Up table
-    typedef std::map<std::string, d_type>  d_table;
-
-    // TODO:
-    //      1- Review how a d_block will hold the other
-    //          directives that are inside it. This might
-    //          be overcomplicating it a lot since the 
-    //          values will always be to feed the server
-    //          class, and most probably nothing else
-    //      2 - Make d_block maybe be a class with destructor
-    //          and constructor, but destructor at least
-    //          so its easier to clean it
+    // @brief:  Holds the Block Directive data which contains
+    //              both Simple and Block Directives
     typedef struct d_block
     {
-        bool            isTaken;
-        std::string     name;
-        utils::sVector  args;
-        D_Simple        dSimple[MAX_S_DIRECTIVE_SIZE];
-        struct d_block  *next;
+        std::string             name;
+        utils::sVector          args;
+        std::vector<D_Simple>   dSimple;
+        std::vector<d_block>    dBlock;
     }   D_Block;
 
-    // METHODS --------------------------------------------
-    // Functions
-    D_Block *fetch_config(char *filename);
-    void    errorPrint(int code);
-    void    configuration_file_init();
+
+    //--------------------------------------------------------------
+    // FUNCTIONS    ------------------------------------------------
+
+    std::vector<cfg::D_Block>   fetch_config(char *filename);
+
+    // @brief:  Provides a specific error for any try catch block
+    //              that catches a throw from the cfg namespace
+    // @PARAM:  none
+    void                        errorPrint(int code);;
+    void                        configuration_file_init();
 }

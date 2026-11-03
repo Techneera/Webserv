@@ -7,33 +7,13 @@
 #include "utils.hpp"
 #include "configuration_file.hpp"
 
-// TODO: replace NULL RETURNS WITH ERROR THROW
-
-// what: static allocated memory pool to save the config file directives
-// type: 
-//      typedef struct d_block
-//      {
-//          bool            free;
-//          d_type          type;
-//          std::string     name;
-//          std::string     argument;
-//          D_Simple        dSimple[MAX_S_DIRECTIVE_SIZE];
-//          struct d_block  *next;
-//      }   D_Block;
-// TODO:
-//      Might just not return the nodes on the parseDirective funcitons
-//      and just throw the errors if the actual static allocation works
-static cfg::D_Block directivePool[MEMORY_POOL_SIZE];
-
-// what: Look Up table to find if the directive is a valid one
-// type: std::map<std::string, enum>
+// @brief:  Look Up table to find if the directive is a valid one
 static cfg::d_table directiveTable;
 
-// Responsability: Populating the Look Up table as c++98 doesn't allow
+// @brief:  Populates the Look Up table as c++98 doesn't allow
 //                  Initialization of a map container
-// TODO:
-//      1 - Maybe make the look up table have more values for multiple
-//          keys so theres further validation of each directive
+// @PARAM:  none
+// @return: void
 void    cfg::configuration_file_init()
 {
     directiveTable["listen"] = D_SIMPLE;
@@ -50,19 +30,40 @@ void    cfg::configuration_file_init()
     directiveTable["cgi"] = D_BLOCK;
 }
 
-// Might be of use in the future, but not now
-void directivePoolGetFreeIdx(size_t &idx)
+// @brief:  Provides a specific error for any try catch block
+//              that catches a throw from the cfg namespace
+// @PARAM:  code - the error code to determine error message
+// return:  void
+void    cfg::errorPrint(int code)
 {
-    while (directivePool[idx].isTaken == true)
+    std::cout << "Error: ";
+    switch (code)
     {
-        idx++;
-        if (idx >= MEMORY_POOL_SIZE)
-            throw (static_cast<int>(cfg::err_BigConfig));
+        case err_BadDirective:
+            std::cout << "Bad directive!\n";
+            break ;
+        case err_BadDirectiveSimple:
+            std::cout << "Bad simple directive structure!\n";
+            break ;
+        case err_BadDirectiveBlock:
+            std::cout << "Bad block directive structure!\n";
+            break ;
+        case err_BadConfig:
+            std::cout << "Expecting block directive!\n";
+            break ;
+        case err_BigConfig:
+            std::cout << "Configuration file too big!\n";
+            break ;
+        default:
+            std::cout << "Unknown cause!\n";
+            break ;
     }
 }
 
-// 1 - Assigns next char to c
-// 2 - Returns next char through c
+// @brief:  Provides a small ease of use modification of
+//              the standard ifstream method get()
+// @PARAM:  ifstream - config file stream; c - holds next char
+// @return: int (to be able to return both EOF or any char)
 static
 int stt_get(std::ifstream &ifstream, char &c)
 {
@@ -72,7 +73,9 @@ int stt_get(std::ifstream &ifstream, char &c)
     return (c);
 }
 
-// Responsability: Consumes Spaces of a ifstream
+// @brief:  Consumes Spaces of a ifstream
+// @PARAM:  ifstream - config file stream; c - holds next char
+// @return: int (EOF or next char)
 static
 int stt_consumeSpaces(std::ifstream &ifs, char &c)
 {
@@ -87,7 +90,9 @@ int stt_consumeSpaces(std::ifstream &ifs, char &c)
     return (i);
 }
 
-// Responsability: Consumes Comments of a ifstream
+// @brief:  Consumes Comments of a ifstream
+// @PARAM:  ifstream - config file stream; c - holds next char
+// @return: int (EOF or next char)
 static
 int stt_consumeComments(std::ifstream &ifs, char &c)
 {
@@ -100,6 +105,9 @@ int stt_consumeComments(std::ifstream &ifs, char &c)
     return (i);
 }
 
+// @brief:  Consumes new line chars of a ifstream
+// @PARAM:  ifstream - config file stream; c - holds next char
+// @return: int (EOF or next char)
 static
 int stt_consumeNewLines(std::ifstream &ifs, char &c)
 {
@@ -110,14 +118,18 @@ int stt_consumeNewLines(std::ifstream &ifs, char &c)
     return (i);
 }
 
-// Responsability: Consuming any blocks of characters that are
+// @brief:      Consumes any blocks of characters that are
 //                  not relevant for the webserver configuration
-// Algorithm: 1 - Check which is the current char
-//            2 - If current char is '\n', consume any '\n' lines
-//            3 - If current char is '#', consume comment line
-//            4 - If current char is '<space>', consume spaces
-//            5 - Else,  it is the start of a token, so return char
-int consumeNonToken(std::ifstream &ifs, char &c)
+//                  such as comments, new lines and spaces
+// @PARAM:      ifstream - config file stream; c - holds next char
+// @return:     int (EOF or next char)
+// @details:    1 - Check which is the current char
+//              2 - If current char is '\n', consume any '\n' lines
+//              3 - If current char is '#', consume comment line
+//              4 - If current char is '<space>', consume spaces
+//              5 - Else,  it is the start of a token, so return char
+static
+int stt_consumeNonToken(std::ifstream &ifs, char &c)
 {
     if  (c != '\n' && c != '#' && !std::isspace(c))
         return  (c);
@@ -146,6 +158,15 @@ int consumeNonToken(std::ifstream &ifs, char &c)
     return (1);
 }
 
+// @brief:  Saves next token in <token> param. A token is any
+//             block of the config file ifstream that is
+//             separated by spaces, is not a comment, is not
+//             a new line, EOF or any special character that
+//             determines the end or the beggining of a simple
+//             or block directive
+// @PARAM:  ifstream - config file stream; c - holds next char;
+//             token - token to be saved
+// @return: int (EOF or next char)
 static
 int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
 {
@@ -162,6 +183,10 @@ int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
     return (1);
 }
 
+// @brief:  
+// @PARAM:  ifstream - config file stream; c - holds next char;
+//             token - token to be saved
+// @return: vector<std::string> (EOF or next char)
 static
 utils::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
@@ -197,14 +222,10 @@ utils::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 }
 
 static
-cfg::D_Block    *stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
-                                        char &c, size_t poolIdx)
+cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
+                                        char &c)
 {
-    if (poolIdx >= MEMORY_POOL_SIZE)
-        throw (static_cast<int>(cfg::err_BigConfig));
-
-    size_t  blockIdx = 0;
-    size_t  simpleIdx = 0;
+    cfg::D_Block directiveBlock;
 
     if (c != '{')
         throw (static_cast<int>(cfg::err_BadDirectiveBlock));
@@ -212,14 +233,14 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
     if (!ifs.get(c))
         throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
-    directivePool[poolIdx].name = _name;
+
+    directiveBlock.name = _name;
 
     std::string     name;
-    utils::sVector  args;
 
     while (c != '}')
     {
-        if (consumeNonToken(ifs, c) == EOF)
+        if (stt_consumeNonToken(ifs, c) == EOF)
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
         if (c == '}')
@@ -241,7 +262,7 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
 
         if (it->second == cfg::D_BLOCK)
         {
-            if (consumeNonToken(ifs, c) == EOF)
+            if (stt_consumeNonToken(ifs, c) == EOF)
                 throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
             if (name == "location")
@@ -249,23 +270,20 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
                 if (stt_parseToken(ifs, c, name) == EOF)
                     throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
-                if (consumeNonToken(ifs, c) == EOF)
+                if (stt_consumeNonToken(ifs, c) == EOF)
                     throw (static_cast<int>(cfg::err_BadDirectiveBlock));
             }
 
-            for (size_t i = 0; i < blockIdx; i++)
-            {
-                directivePool[poolIdx].next = directivePool[poolIdx].next;
-            }
-
-            directivePool[poolIdx].next = 
-                stt_parseDirectiveBlock(name, ifs, c, poolIdx + 1);
+            directiveBlock.dBlock.push_back(
+                            stt_parseDirectiveBlock(name, ifs, c));
         }
         else if(it->second == cfg::D_SIMPLE)
         {
-            args = stt_parseDirectiveSimple(ifs, c);
-            directivePool[poolIdx].dSimple[simpleIdx].name = name;
-            directivePool[poolIdx].dSimple[simpleIdx++].args = args;
+            cfg::D_Simple    directiveSimple;
+
+            directiveSimple.name = name;
+            directiveSimple.args = stt_parseDirectiveSimple(ifs, c);
+            directiveBlock.dSimple.push_back(directiveSimple);
         }
         else
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
@@ -273,23 +291,22 @@ cfg::D_Block    *stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
 
     stt_get(ifs, c);
 
-    return  (&directivePool[poolIdx]);
+    return  (directiveBlock);
 }
 
 static
-cfg::D_Block *stt_parseConfig(std::ifstream &ifs, char &c)
+std::vector<cfg::D_Block> stt_parseConfig(std::ifstream &ifs, char &c)
 {
-    size_t          i = 0;
-    cfg::D_Block    *config[MAX_DIRECTIVES];
-    std::string     arg;
+    std::string                 arg;
+    std::vector<cfg::D_Block>   config;
 
     while (1)
     {
         if (!ifs.get(c))
-            return (*config);
+            return (config);
 
-        if (consumeNonToken(ifs, c) == EOF)
-            return (*config);
+        if (stt_consumeNonToken(ifs, c) == EOF)
+            return (config);
 
         if (c == ';' || c == '}' || c == '{')
             throw (static_cast<int>(cfg::err_BadConfig));
@@ -302,22 +319,14 @@ cfg::D_Block *stt_parseConfig(std::ifstream &ifs, char &c)
         if (arg != "server")
             throw (static_cast<int>(cfg::err_BadConfig));
 
-        if (consumeNonToken(ifs, c) == EOF)
-            return (*config);
+        if (stt_consumeNonToken(ifs, c) == EOF)
+            return (config);
 
-        if (i >= MAX_DIRECTIVES)
-            throw (static_cast<int>(cfg::err_BigConfig));
-
-        config[i++] = stt_parseDirectiveBlock("server", ifs, c, 0);
+        config.push_back(stt_parseDirectiveBlock("server", ifs, c));
     }
 }
 
-// TODO:
-//      1 - Maybe change to a better name after group discussion
-//      2 - Understand when to use the consumers as sometimes
-//          the spaces are meaninful, for example, when trying
-//          to understand what's the name of the directive
-cfg::D_Block  *cfg::fetch_config(char *filename)
+std::vector<cfg::D_Block>  cfg::fetch_config(char *filename)
 {
     cfg::configuration_file_init();
 
@@ -331,78 +340,6 @@ cfg::D_Block  *cfg::fetch_config(char *filename)
 
     std::string     digits;
     char            c;
-    //bool          started;
 
-    stt_parseConfig(ifs, c);
-
-    return (directivePool);
-
-    // (RAFA CODE) TODO: 
-    //      1- Move to another function that parses ports
-    /*if (std::isdigit(static_cast<unsigned char>(c)))
-      {
-      digits += c;
-      started = true;
-      }
-      else if (started)
-      break; */
-
-    // (RAFA CODE) TODO: 
-    //      1- Move to another function that parses ports
-    /*if (digits.empty())
-      {
-      std::cerr << "ERROR: No port number found in config"
-      << std::endl;
-      return (-1);
-      }
-
-      errno = 0;
-      char    *end = NULL;
-      long    port = std::strtol(digits.c_str(), &end, 10);
-
-      if (errno == ERANGE)
-      {
-      std::cerr << "ERROR: Port number out of range"
-      << std::endl;
-      return (-1);
-      }
-      if (end == digits.c_str() || *end != '\0')
-      {
-      std::cerr << "ERROR: Invalid port number" << std::endl;
-      return (-1);
-      }
-      if (port < 1025 || port > 65535)
-      {
-      std::cerr << "ERROR: Port number must be "
-      << "between 1025 and 65535" << std::endl;
-      return (-1);
-      }
-
-      return (static_cast<int>(port));*/
-}
-
-void    cfg::errorPrint(int code)
-{
-    std::cout << "Error: ";
-    switch (code)
-    {
-        case err_BadDirective:
-            std::cout << "Bad directive!\n";
-            break ;
-        case err_BadDirectiveSimple:
-            std::cout << "Bad simple directive structure!\n";
-            break ;
-        case err_BadDirectiveBlock:
-            std::cout << "Bad block directive structure!\n";
-            break ;
-        case err_BadConfig:
-            std::cout << "Expecting block directive!\n";
-            break ;
-        case err_BigConfig:
-            std::cout << "Configuration file too big!\n";
-            break ;
-        default:
-            std::cout << "Unknown cause!\n";
-            break ;
-    }
+    return (stt_parseConfig(ifs, c));
 }
