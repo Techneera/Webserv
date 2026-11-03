@@ -47,6 +47,7 @@ void    cfg::configuration_file_init()
     directiveTable["client_max_body_size"] = D_SIMPLE;
     directiveTable["root"] = D_SIMPLE;
     directiveTable["error_pages"] = D_SIMPLE;
+    directiveTable[".rs"] = D_SIMPLE;
 
     directiveTable["server"] = D_BLOCK;
     directiveTable["location"] = D_BLOCK;
@@ -97,7 +98,9 @@ int stt_consumeNewLines(std::ifstream &ifs, char &c)
 {
     int i;
 
-    while ((i = stt_get(ifs, c)) == '\n');
+    while ((i = stt_get(ifs, c)) == '\n')
+    {
+    }
 
     return (i);
 }
@@ -111,30 +114,31 @@ int stt_consumeNewLines(std::ifstream &ifs, char &c)
 //            5 - Else,  it is the start of a token, so return char
 int consumeNonToken(std::ifstream &ifs, char &c)
 {
-    int i;
-
     if  (c != '\n' && c != '#' && !std::isspace(c))
         return  (c);
 
-    while (c != EOF)
+    while (1)
     {
         if (c == '\n')
         {
-            i = stt_consumeNewLines(ifs, c);
+            if (stt_consumeNewLines(ifs, c) == EOF)
+                return (EOF);
         }
         else if (c == '#')
         {
-            i = stt_consumeComments(ifs, c);
+            if (stt_consumeComments(ifs, c) == EOF)
+                return  (EOF);
         }
         else if (std::isspace(c))
         {
-            i = stt_consumeSpaces(ifs, c);
+            if (stt_consumeSpaces(ifs, c) == EOF)
+                return  (EOF);
         }
         else
             break ;
     }
 
-    return i;
+    return (1);
 }
 
 static
@@ -153,8 +157,8 @@ int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
     return (1);
 }
 
-    static
-int stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
+static
+void stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
     std::string     arg;
     utils::sVector  args;
@@ -165,31 +169,34 @@ int stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
             throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
         if (stt_consumeSpaces(ifs, c) == EOF)
-            return (EOF);
+            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
         if (c == '#' || c == '\n' || c == ';' || c == '}'
                 || c == '{')
-            return (1);
+            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
         if (stt_parseToken(ifs, c, arg) == EOF)
-            return (EOF);
+            return ;
 
         if (c == '}' || c == '{')
             throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
         if (c == ';')
-            return (stt_get(ifs, c));
+        {
+            stt_get(ifs, c);
+            return ;
+        }
     }
 }
 
-    static
-int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
+static
+void    stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
 {
     if (c != '{')
         throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
     if (!ifs.get(c))
-        return (EOF);
+        return ;
 
     std::string     arg;
     utils::sVector  args;
@@ -197,16 +204,19 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
     while (c != '}')
     {
         if (consumeNonToken(ifs, c) == EOF)
-            return (EOF);
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
         if (c == '}')
-            return (stt_get(ifs, c));
+        {
+            stt_get(ifs, c);
+            return ;
+        }
 
         if (c == ';' || c == '{')
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
         if (stt_parseToken(ifs, c, arg) == EOF)
-            return (EOF);
+            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
         cfg::d_table::iterator      it;
 
@@ -216,15 +226,15 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
         if (it->second == cfg::D_BLOCK)
         {
             if (consumeNonToken(ifs, c) == EOF)
-                return (EOF);
+                throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
             if (arg == "location")
             {
                 if (stt_parseToken(ifs, c, arg) == EOF)
-                    return (EOF);
+                    throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
                 if (consumeNonToken(ifs, c) == EOF)
-                    return (EOF);
+                    throw (static_cast<int>(cfg::err_BadDirectiveBlock));
             }
             stt_parseDirectiveBlock(ifs, c);
         }
@@ -237,42 +247,36 @@ int stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
     }
 
     stt_get(ifs, c);
-
-    return (1);
 }
 
-    static
-int stt_parseConfig(std::ifstream &ifs, char &c)
+static
+void stt_parseConfig(std::ifstream &ifs, char &c)
 {
     std::string arg;
 
     while (1)
     {
         if (!ifs.get(c))
-            return (EOF);
+            return ;
 
         if (consumeNonToken(ifs, c) == EOF)
-            return (EOF);
+            return ;
 
         if (c == ';' || c == '}' || c == '{')
-            throw (static_cast<int>(cfg::err_BadDirective));
+            throw (static_cast<int>(cfg::err_BadConfig));
 
         if (stt_parseToken(ifs, c, arg) == EOF)
-            return (EOF);
+            throw (static_cast<int>(cfg::err_BadConfig));
 
         cfg::d_table::iterator      it;
 
-        if ((it = directiveTable.find(arg)) == directiveTable.end())
-            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
-
-        if (it->second == cfg::D_BLOCK)
-        {
-            if (consumeNonToken(ifs, c) == EOF)
-                return (EOF);
-            stt_parseDirectiveBlock(ifs, c);
-        }
-        else
+        if (arg != "server")
             throw (static_cast<int>(cfg::err_BadConfig));
+
+        if (consumeNonToken(ifs, c) == EOF)
+            return ;
+
+        stt_parseDirectiveBlock(ifs, c);
     }
 }
 
@@ -355,13 +359,15 @@ void    cfg::errorPrint(int code)
             break ;
         case err_BadDirectiveSimple:
             std::cout << "Bad simple directive structure!\n";
+            break ;
         case err_BadDirectiveBlock:
             std::cout << "Bad block directive structure!\n";
+            break ;
         case err_BadConfig:
             std::cout << "Expecting block directive!\n";
+            break ;
         default:
-            std::cout << "unknown cause!\n";
+            std::cout << "Unknown cause!\n";
             break ;
     }
 }
-

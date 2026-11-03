@@ -25,9 +25,9 @@ int main(int argc, char **argv)
   {
     config = cfg::fetch_config(argv[1]);
   }
-  catch (...)
+  catch (int &error)
   {
-      std::cerr << "Error: could not parse config_file\n";
+      cfg::errorPrint(error);
   }
 
   // TODO: insert this Rafael code in the server module
