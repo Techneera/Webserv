@@ -25,10 +25,6 @@
 //      and just throw the errors if the actual static allocation works
 static cfg::D_Block directivePool[MEMORY_POOL_SIZE];
 
-// what: global idex to iterate the memory pool
-static int  idxBlock = -1;
-static int  idxSimple = 0;
-
 // what: Look Up table to find if the directive is a valid one
 // type: std::map<std::string, enum>
 static cfg::d_table directiveTable;
@@ -52,6 +48,17 @@ void    cfg::configuration_file_init()
     directiveTable["server"] = D_BLOCK;
     directiveTable["location"] = D_BLOCK;
     directiveTable["cgi"] = D_BLOCK;
+}
+
+// Might be of use in the future, but not now
+void directivePoolGetFreeIdx(size_t &idx)
+{
+    while (directivePool[idx].isTaken == true)
+    {
+        idx++;
+        if (idx >= MEMORY_POOL_SIZE)
+            throw (static_cast<int>(cfg::err_BigConfig));
+    }
 }
 
 // 1 - Assigns next char to c
@@ -98,9 +105,7 @@ int stt_consumeNewLines(std::ifstream &ifs, char &c)
 {
     int i;
 
-    while ((i = stt_get(ifs, c)) == '\n')
-    {
-    }
+    while ((i = stt_get(ifs, c)) == '\n');
 
     return (i);
 }
@@ -158,10 +163,10 @@ int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
 }
 
 static
-void stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
+utils::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
     std::string     arg;
-    utils::sVector  args;
+    utils::sVector  args(0);
 
     while (1)
     {
@@ -176,7 +181,9 @@ void stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
             throw (static_cast<int>(cfg::err_BadDirectiveSimple));
 
         if (stt_parseToken(ifs, c, arg) == EOF)
-            return ;
+            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+
+        args.push_back(arg);
 
         if (c == '}' || c == '{')
             throw (static_cast<int>(cfg::err_BadDirectiveSimple));
@@ -184,21 +191,30 @@ void stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
         if (c == ';')
         {
             stt_get(ifs, c);
-            return ;
+            return (args);
         }
     }
 }
 
 static
-void    stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
+cfg::D_Block    *stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
+                                        char &c, size_t poolIdx)
 {
+    if (poolIdx >= MEMORY_POOL_SIZE)
+        throw (static_cast<int>(cfg::err_BigConfig));
+
+    size_t  blockIdx = 0;
+    size_t  simpleIdx = 0;
+
     if (c != '{')
         throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
     if (!ifs.get(c))
-        return ;
+        throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
-    std::string     arg;
+    directivePool[poolIdx].name = _name;
+
+    std::string     name;
     utils::sVector  args;
 
     while (c != '}')
@@ -209,18 +225,18 @@ void    stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
         if (c == '}')
         {
             stt_get(ifs, c);
-            return ;
+            break ;
         }
 
         if (c == ';' || c == '{')
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
-        if (stt_parseToken(ifs, c, arg) == EOF)
+        if (stt_parseToken(ifs, c, name) == EOF)
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
         cfg::d_table::iterator      it;
 
-        if ((it = directiveTable.find(arg)) == directiveTable.end())
+        if ((it = directiveTable.find(name)) == directiveTable.end())
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
         if (it->second == cfg::D_BLOCK)
@@ -228,39 +244,52 @@ void    stt_parseDirectiveBlock(std::ifstream &ifs, char &c)
             if (consumeNonToken(ifs, c) == EOF)
                 throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
-            if (arg == "location")
+            if (name == "location")
             {
-                if (stt_parseToken(ifs, c, arg) == EOF)
+                if (stt_parseToken(ifs, c, name) == EOF)
                     throw (static_cast<int>(cfg::err_BadDirectiveBlock));
 
                 if (consumeNonToken(ifs, c) == EOF)
                     throw (static_cast<int>(cfg::err_BadDirectiveBlock));
             }
-            stt_parseDirectiveBlock(ifs, c);
+
+            for (size_t i = 0; i < blockIdx; i++)
+            {
+                directivePool[poolIdx].next = directivePool[poolIdx].next;
+            }
+
+            directivePool[poolIdx].next = 
+                stt_parseDirectiveBlock(name, ifs, c, poolIdx + 1);
         }
         else if(it->second == cfg::D_SIMPLE)
         {
-            stt_parseDirectiveSimple(ifs, c);
+            args = stt_parseDirectiveSimple(ifs, c);
+            directivePool[poolIdx].dSimple[simpleIdx].name = name;
+            directivePool[poolIdx].dSimple[simpleIdx++].args = args;
         }
         else
             throw (static_cast<int>(cfg::err_BadDirectiveBlock));
     }
 
     stt_get(ifs, c);
+
+    return  (&directivePool[poolIdx]);
 }
 
 static
-void stt_parseConfig(std::ifstream &ifs, char &c)
+cfg::D_Block *stt_parseConfig(std::ifstream &ifs, char &c)
 {
-    std::string arg;
+    size_t          i = 0;
+    cfg::D_Block    *config[MAX_DIRECTIVES];
+    std::string     arg;
 
     while (1)
     {
         if (!ifs.get(c))
-            return ;
+            return (*config);
 
         if (consumeNonToken(ifs, c) == EOF)
-            return ;
+            return (*config);
 
         if (c == ';' || c == '}' || c == '{')
             throw (static_cast<int>(cfg::err_BadConfig));
@@ -274,9 +303,12 @@ void stt_parseConfig(std::ifstream &ifs, char &c)
             throw (static_cast<int>(cfg::err_BadConfig));
 
         if (consumeNonToken(ifs, c) == EOF)
-            return ;
+            return (*config);
 
-        stt_parseDirectiveBlock(ifs, c);
+        if (i >= MAX_DIRECTIVES)
+            throw (static_cast<int>(cfg::err_BigConfig));
+
+        config[i++] = stt_parseDirectiveBlock("server", ifs, c, 0);
     }
 }
 
@@ -365,6 +397,9 @@ void    cfg::errorPrint(int code)
             break ;
         case err_BadConfig:
             std::cout << "Expecting block directive!\n";
+            break ;
+        case err_BigConfig:
+            std::cout << "Configuration file too big!\n";
             break ;
         default:
             std::cout << "Unknown cause!\n";

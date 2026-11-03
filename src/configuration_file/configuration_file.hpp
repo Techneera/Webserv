@@ -13,6 +13,7 @@ namespace cfg
     // Max
     #define MAX_S_DIRECTIVE_SIZE 99
     #define MEMORY_POOL_SIZE 99
+    #define MAX_DIRECTIVES 99
 
     // TYPES ---------------------------------------------
     // Errors enums
@@ -23,6 +24,7 @@ namespace cfg
         err_BadDirective = 2,
         err_BadDirectiveSimple = 3,
         err_BadDirectiveBlock = 4,
+        err_BigConfig = 5,
     };
     //
     // Directives names and enums
@@ -55,6 +57,7 @@ namespace cfg
     //          so its easier to clean it
     typedef struct d_block
     {
+        bool            isTaken;
         std::string     name;
         utils::sVector  args;
         D_Simple        dSimple[MAX_S_DIRECTIVE_SIZE];
