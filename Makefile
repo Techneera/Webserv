@@ -19,6 +19,7 @@ UTILS = utils/utils.cpp
 INCLUDES = event_loop \
 		   configuration_file \
 		   signal \
+		   server \
 		   utils
 
 INCLUDE = $(INCLUDES:%=src/%)
@@ -29,6 +30,7 @@ SCRIPTS = $(MAIN) \
 		  $(CONFIGURATION_FILE) \
 		  $(EVENT_LOOP) \
 		  $(SIGNAL) \
+		  $(SERVER) \
 		  $(UTILS)
 
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)

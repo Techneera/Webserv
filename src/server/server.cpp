@@ -1,4 +1,6 @@
 #include "server.hpp"
+#include "utils.hpp"
+#include <cstdlib>
 
 // Default Constructor
 srv::Config::Config()
@@ -57,35 +59,31 @@ srv::Config::Config(cfg::D_Block *server)
 }
 
 // TO TRY TO USE THIS CODE RAFA IMPLEMENTED in the correct place
-int srv::Config::portGet(cfg::D_Simple port)
+int srv::Config::portGet(const cfg::D_Simple &port)
 {
     if (port.args.size() != 1)
+        throw(static_cast<int>(utl::err_BadPort));
 
     std::string     digits;
-    char            c;
 
     errno = 0;
     char    *end = NULL;
-    long    port = std::strtol(digits.c_str(), &end, 10);
+    long    portNo = strtol(port.args[0].c_str(), &end, 10);
 
     if (errno == ERANGE)
     {
-        std::cerr << "ERROR: Port number out of range" << std::endl;
         return (-1);
     }
     if (end == digits.c_str() || *end != '\0')
     {
-        std::cerr << "ERROR: Invalid port number" << std::endl;
-        return (-1);
+        throw (static_cast<int>(utl::err_BadPortRange));
     }
-    if (port < 1025 || port > 65535)
+    if (portNo < 1025 || portNo > 65535)
     {
-        std::cerr << "ERROR: Port number must be "
-            << "between 1025 and 65535" << std::endl;
-        return (-1);
+        throw (static_cast<int>(utl::err_BadPortRange));
     }
 
-    return (static_cast<int>(port));
+    return (static_cast<int>(portNo));
 }
 
 

@@ -17,6 +17,9 @@ namespace   utl
         err_BadDirectiveSimple,
         err_BadDirectiveBlock,
         err_BigConfig,
+
+        err_BadPort,
+        err_BadPortRange,
     };
     typedef std::vector<std::string>    sVector;
     typedef sVector::iterator           sVecIt;

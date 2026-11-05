@@ -52,7 +52,7 @@ namespace srv
             Config(cfg::D_Block *server);
 
         private:
-            int portGet(cfg::D_Simple port);
+            int portGet(const cfg::D_Simple &directive);
 
     };
 }

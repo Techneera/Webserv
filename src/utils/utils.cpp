@@ -26,6 +26,13 @@ void    utl::errorPrint(int &code)
         case err_BigConfig:
             std::cout << "Configuration file too big!\n";
             break ;
+        case err_BadPort:
+            std::cout << "Wrong port directive!\n";
+            break ;
+        case err_BadPortRange:
+            std::cerr << "ERROR: Port number out of range, must be"
+                      << " between 1025 and 65535" << std::endl;
+            break ;
         default:
             std::cout << "Unknown cause!\n";
             break ;
