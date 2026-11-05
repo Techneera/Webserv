@@ -1,5 +1,4 @@
 #include "server.hpp"
-#include "configuration_file.hpp"
 
 // Default Constructor
 srv::Config::Config()
@@ -47,7 +46,7 @@ srv::Config::~Config()
     std::cout << DESTRUCTOR_MSG(CONFIG);
 }
 
-srv::Config::Config(cfg::D_Block *Block)
+srv::Config::Config(cfg::D_Block *server)
 {
     /*this->port = port;
     this->region = region;
@@ -58,65 +57,35 @@ srv::Config::Config(cfg::D_Block *Block)
 }
 
 // TO TRY TO USE THIS CODE RAFA IMPLEMENTED in the correct place
-/*std::vector<cfg::D_Block>  cfg::fetch_config(char *filename)
+int srv::Config::portGet(cfg::D_Simple port)
 {
-    cfg::configuration_file_init();
-
-    std::ifstream   ifs(filename);
-    if (!ifs)
-    {
-        std::cerr << "ERROR: Cannot open config file: "
-            << filename << std::endl;
-        throw (static_cast<int>(err_FileOpening));
-    }
+    if (port.args.size() != 1)
 
     std::string     digits;
     char            c;
 
-    return (stt_parseConfig(ifs, c));
+    errno = 0;
+    char    *end = NULL;
+    long    port = std::strtol(digits.c_str(), &end, 10);
 
-    //bool          started;
+    if (errno == ERANGE)
+    {
+        std::cerr << "ERROR: Port number out of range" << std::endl;
+        return (-1);
+    }
+    if (end == digits.c_str() || *end != '\0')
+    {
+        std::cerr << "ERROR: Invalid port number" << std::endl;
+        return (-1);
+    }
+    if (port < 1025 || port > 65535)
+    {
+        std::cerr << "ERROR: Port number must be "
+            << "between 1025 and 65535" << std::endl;
+        return (-1);
+    }
 
-    // (RAFA CODE) TODO: 
-    //      1- Move to another function that parses ports
-    if (std::isdigit(static_cast<unsigned char>(c)))
-      {
-      digits += c;
-      started = true;
-      }
-      else if (started)
-      break; */
-
-    // (RAFA CODE) TODO: 
-    //      1- Move to another function that parses ports
-    /*if (digits.empty())
-      {
-      std::cerr << "ERROR: No port number found in config"
-      << std::endl;
-      return (-1);
-      }
-
-      errno = 0;
-      char    *end = NULL;
-      long    port = std::strtol(digits.c_str(), &end, 10);
-
-      if (errno == ERANGE)
-      {
-      std::cerr << "ERROR: Port number out of range"
-      << std::endl;
-      return (-1);
-      }
-      if (end == digits.c_str() || *end != '\0')
-      {
-      std::cerr << "ERROR: Invalid port number" << std::endl;
-      return (-1);
-      }
-      if (port < 1025 || port > 65535)
-      {
-      std::cerr << "ERROR: Port number must be "
-      << "between 1025 and 65535" << std::endl;
-      return (-1);
-      }
-
-      return (static_cast<int>(port));*/
+    return (static_cast<int>(port));
 }
+
+

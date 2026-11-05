@@ -3,6 +3,8 @@
 #include <iostream>
 #include <map>
 
+#include "configuration_file.hpp"
+
 #define CONFIG "Config"
 
 #ifndef MSG_OCF
@@ -47,8 +49,10 @@ namespace srv
             ~Config();
 
             /* CONSTRUCTORS */
-            Config(size_t port, std::string region, std::string host,
-                    std::string errorPages, std::string clientMaxBodySize,
-                    sMap location);
+            Config(cfg::D_Block *server);
+
+        private:
+            int portGet(cfg::D_Simple port);
+
     };
 }
