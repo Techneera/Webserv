@@ -66,11 +66,29 @@ namespace cfg
     //--------------------------------------------------------------
     // FUNCTIONS    ------------------------------------------------
 
+    // @brief:  opens the configuration file and calls it's parser function
+    //
+    // @PARAM:  filename - webserver configuration file path
+    //
+    // @return: vector<cfg::D_Block>, an array of multiple D_Blocks that
+    //              holds the server blocks which will provide the server
+    //              class the necessary information for its instantiations
     std::vector<cfg::D_Block>   fetch_config(char *filename);
 
     // @brief:  Provides a specific error for any try catch block
     //              that catches a throw from the cfg namespace
-    // @PARAM:  none
-    void    errorPrint(int code);;
-    void    configuration_file_init();
+    //
+    // @PARAM:  code - the error code to determine error message
+    //
+    // return:  void
+    void                        errorPrint(int code);;
+
+    // @brief:  opens the configuration file and calls it's parser function
+    //
+    // @PARAM:  filename - webserver configuration file path
+    //
+    // @return: vector<cfg::D_Block>, an array of multiple D_Blocks that
+    //              holds the server blocks which will provide the server
+    //              class the necessary information for its instantiations
+    void                        configuration_file_init();
 }
