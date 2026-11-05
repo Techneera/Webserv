@@ -3,7 +3,7 @@
 #include <iostream>
 #include <map>
 
-#define SERVER "Server"
+#define CONFIG "Config"
 
 #ifndef MSG_OCF
 #define MSG_OCF
@@ -24,9 +24,11 @@
 
 typedef std::map<std::string, std::string>  sMap;
 
-class   Server
+namespace srv
 {
-    public:
+    class Config
+    {
+        public:
             size_t          port; // port number
             std::string     region; // just messing around, it's not needed, but it's cool
             std::string     host; // ip address string
@@ -36,17 +38,17 @@ class   Server
 
             /* ORTHODOX CANONICAL FORM */
             // Default Constructor
-            Server();
+            Config();
             // Copy Constructor
-            Server(const Server& other);
+            Config(const Config& other);
             // Copy Assignment Operator
-            Server& operator=(const Server& other);
+            Config& operator=(const Config& other);
             // Destructor
-            ~Server();
+            ~Config();
 
             /* CONSTRUCTORS */
-            Server(size_t port, std::string region, std::string host,
-                   std::string errorPages, std::string clientMaxBodySize,
-                   sMap location);
-};
-
+            Config(size_t port, std::string region, std::string host,
+                    std::string errorPages, std::string clientMaxBodySize,
+                    sMap location);
+    };
+}

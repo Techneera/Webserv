@@ -14,8 +14,7 @@
 //              that will provide the necessary structured
 //              data for the instantiation of the server class
 namespace cfg
-{
-    // DEFINES -------------------------------------------
+{ // DEFINES -------------------------------------------
 
 
     // ---------------------------------------------------
@@ -72,6 +71,6 @@ namespace cfg
     // @brief:  Provides a specific error for any try catch block
     //              that catches a throw from the cfg namespace
     // @PARAM:  none
-    void                        errorPrint(int code);;
-    void                        configuration_file_init();
+    void    errorPrint(int code);;
+    void    configuration_file_init();
 }

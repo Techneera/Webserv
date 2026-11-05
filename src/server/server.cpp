@@ -1,9 +1,10 @@
 #include "server.hpp"
+#include "configuration_file.hpp"
 
 // Default Constructor
-Server::Server()
+srv::Config::Config()
 {
-    std::cout << CONSTRUCTOR_DEFAULT_MSG(CLASS);
+    std::cout << CONSTRUCTOR_DEFAULT_MSG(CONFIG);
 
     this->port = 0;
     this->region = "Unknown";
@@ -13,9 +14,9 @@ Server::Server()
 }
 
 // Copy Constructor
-Server::Server(const Server& other)
+srv::Config::Config(const Config& other)
 {
-    std::cout << CONSTRUCTOR_COPY_MSG(CLASS);
+    std::cout << CONSTRUCTOR_COPY_MSG(CONFIG);
     this->port = other.port;
     this->region = other.region;
     this->host = other.host;
@@ -25,9 +26,9 @@ Server::Server(const Server& other)
 }
 
 // Copy Assignment operator
-Server& Server::operator=(const Server& other)
+srv::Config& srv::Config::operator=(const Config& other)
 {
-    std::cout << ASSIGNMENT_OPERATOR_COPY_MSG(CLASS);
+    std::cout << ASSIGNMENT_OPERATOR_COPY_MSG(CONFIG);
     if (this != &other)
     {
         this->port = other.port;
@@ -41,21 +42,19 @@ Server& Server::operator=(const Server& other)
 }
 
 // Destructor
-Server::~Server()
+srv::Config::~Config()
 {
-    std::cout << DESTRUCTOR_MSG(CLASS);
+    std::cout << DESTRUCTOR_MSG(CONFIG);
 }
 
-Server::Server(size_t port, std::string region, std::string host,
-        std::string errorPages, std::string clientMaxBodySize,
-        sMap location)
+srv::Config::Config(cfg::D_Block *Block)
 {
-    this->port = port;
+    /*this->port = port;
     this->region = region;
     this->host = host;
     this->errorPages = errorPages;
     this->location = location;
-    this->clientMaxBodySize = clientMaxBodySize;
+    this->clientMaxBodySize = clientMaxBodySize;*/
 }
 
 // TO TRY TO USE THIS CODE RAFA IMPLEMENTED in the correct place
