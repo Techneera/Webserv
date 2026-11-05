@@ -21,17 +21,6 @@ namespace cfg
     // ---------------------------------------------------
     // TYPES ---------------------------------------------
 
-    // @brief:  Error number codes for throwing errors
-    enum    e_errors
-    {
-        err_FileOpening = 0,
-        err_BadConfig = 1,
-        err_BadDirective = 2,
-        err_BadDirectiveSimple = 3,
-        err_BadDirectiveBlock = 4,
-        err_BigConfig = 5,
-    };
-
     // @brief:  A simple enum for easy of use when checking
     //              the type of directive that is found
     //              on a look up table
@@ -50,7 +39,7 @@ namespace cfg
     typedef struct d_simple
     {
         std::string     name;
-        utils::sVector  args;
+        utl::sVector  args;
     }   D_Simple;
 
     // @brief:  Holds the Block Directive data which contains
@@ -58,7 +47,7 @@ namespace cfg
     typedef struct d_block
     {
         std::string             name;
-        utils::sVector          args;
+        utl::sVector          args;
         std::vector<D_Simple>   dSimple;
         std::vector<d_block>    dBlock;
     }   D_Block;

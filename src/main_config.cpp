@@ -27,7 +27,7 @@ int main(int argc, char **argv)
   }
   catch (int &error)
   {
-      cfg::errorPrint(error);
+      utl::errorPrint(error);
   }
 
   // TODO: insert this Rafael code in the server module

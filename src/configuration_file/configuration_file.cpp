@@ -32,38 +32,6 @@ void    cfg::configuration_file_init()
     directiveTable["cgi"] = D_BLOCK;
 }
 
-// @brief:  Provides a specific error for any try catch block
-//              that catches a throw from the cfg namespace
-//
-// @PARAM:  code - the error code to determine error message
-//
-// return:  void
-void    cfg::errorPrint(int code)
-{
-    std::cout << "Error: ";
-    switch (code)
-    {
-        case err_BadDirective:
-            std::cout << "Bad directive!\n";
-            break ;
-        case err_BadDirectiveSimple:
-            std::cout << "Bad simple directive structure!\n";
-            break ;
-        case err_BadDirectiveBlock:
-            std::cout << "Bad block directive structure!\n";
-            break ;
-        case err_BadConfig:
-            std::cout << "Expecting block directive!\n";
-            break ;
-        case err_BigConfig:
-            std::cout << "Configuration file too big!\n";
-            break ;
-        default:
-            std::cout << "Unknown cause!\n";
-            break ;
-    }
-}
-
 // @brief:  Provides a small ease of use modification of
 //              the standard ifstream method get()
 //
@@ -214,30 +182,30 @@ int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
 //              3 -     Add token to a tokens vector
 //              4 - Return the tokens vector
 static
-utils::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
+utl::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 {
     std::string     arg;
-    utils::sVector  args(0);
+    utl::sVector  args(0);
 
     while (1)
     {
         if (c == '#' || c == '\n' || c == '}' || c == '{')
-            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+            throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
         if (stt_consumeSpaces(ifs, c) == EOF)
-            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+            throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
         if (c == '#' || c == '\n' || c == ';' || c == '}'
                 || c == '{')
-            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+            throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
         if (stt_parseToken(ifs, c, arg) == EOF)
-            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+            throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
         args.push_back(arg);
 
         if (c == '}' || c == '{')
-            throw (static_cast<int>(cfg::err_BadDirectiveSimple));
+            throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
         if (c == ';')
         {
@@ -276,10 +244,10 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
     cfg::D_Block directiveBlock;
 
     if (c != '{')
-        throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+        throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
     if (!ifs.get(c))
-        throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+        throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
 
     directiveBlock.name = _name;
@@ -289,7 +257,7 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
     while (c != '}')
     {
         if (stt_consumeNonToken(ifs, c) == EOF)
-            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+            throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
         if (c == '}')
         {
@@ -298,28 +266,28 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
         }
 
         if (c == ';' || c == '{')
-            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+            throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
         if (stt_parseToken(ifs, c, name) == EOF)
-            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+            throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
         cfg::d_table::iterator      it;
 
         if ((it = directiveTable.find(name)) == directiveTable.end())
-            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+            throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
         if (it->second == cfg::D_BLOCK)
         {
             if (stt_consumeNonToken(ifs, c) == EOF)
-                throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+                throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
             if (name == "location")
             {
                 if (stt_parseToken(ifs, c, name) == EOF)
-                    throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+                    throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
                 if (stt_consumeNonToken(ifs, c) == EOF)
-                    throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+                    throw (static_cast<int>(utl::err_BadDirectiveBlock));
             }
 
             directiveBlock.dBlock.push_back(
@@ -334,7 +302,7 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
             directiveBlock.dSimple.push_back(directiveSimple);
         }
         else
-            throw (static_cast<int>(cfg::err_BadDirectiveBlock));
+            throw (static_cast<int>(utl::err_BadDirectiveBlock));
     }
 
     stt_get(ifs, c);
@@ -373,15 +341,15 @@ std::vector<cfg::D_Block> stt_parseConfig(std::ifstream &ifs, char &c)
             return (config);
 
         if (c == ';' || c == '}' || c == '{')
-            throw (static_cast<int>(cfg::err_BadConfig));
+            throw (static_cast<int>(utl::err_BadConfig));
 
         if (stt_parseToken(ifs, c, arg) == EOF)
-            throw (static_cast<int>(cfg::err_BadConfig));
+            throw (static_cast<int>(utl::err_BadConfig));
 
         cfg::d_table::iterator      it;
 
         if (arg != "server")
-            throw (static_cast<int>(cfg::err_BadConfig));
+            throw (static_cast<int>(utl::err_BadConfig));
 
         if (stt_consumeNonToken(ifs, c) == EOF)
             return (config);
@@ -406,7 +374,7 @@ std::vector<cfg::D_Block>  cfg::fetch_config(char *filename)
     {
         std::cerr << "ERROR: Cannot open config file: "
             << filename << std::endl;
-        throw (static_cast<int>(err_FileOpening));
+        throw (static_cast<int>(utl::err_FileOpening));
     }
 
     std::string     digits;

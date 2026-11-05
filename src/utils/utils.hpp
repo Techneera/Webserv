@@ -3,9 +3,23 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <map>
 
-namespace   utils
+namespace   utl
 {
+
+    // @brief:  Error number codes for throwing errors
+    enum    e_errors
+    {
+        err_FileOpening,
+        err_BadConfig,
+        err_BadDirective,
+        err_BadDirectiveSimple,
+        err_BadDirectiveBlock,
+        err_BigConfig,
+    };
     typedef std::vector<std::string>    sVector;
     typedef sVector::iterator           sVecIt;
+
+    void    errorPrint(int &error);
 };
