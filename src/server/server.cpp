@@ -48,18 +48,8 @@ srv::Config::~Config()
     std::cout << DESTRUCTOR_MSG(CONFIG);
 }
 
-srv::Config::Config(cfg::D_Block *server)
-{
-    /*this->port = port;
-    this->region = region;
-    this->host = host;
-    this->errorPages = errorPages;
-    this->location = location;
-    this->clientMaxBodySize = clientMaxBodySize;*/
-}
-
-// TO TRY TO USE THIS CODE RAFA IMPLEMENTED in the correct place
-int srv::Config::portGet(const cfg::D_Simple &port)
+static
+int portGet(const cfg::D_Simple &port)
 {
     if (port.args.size() != 1)
         throw(static_cast<int>(utl::err_BadPort));
@@ -86,4 +76,40 @@ int srv::Config::portGet(const cfg::D_Simple &port)
     return (static_cast<int>(portNo));
 }
 
+// TODO:
+//      1- Bit Hash table to determine if all the mandatory
+//              directives are filled in
+srv::Config::Config(const cfg::D_Block &server)
+{
+    /*if (server.dSimple.size()) < MIN_CFG_DSIMPLE_SIZE
+     *      throw (static_cast<int>());*/
 
+    this->region = region;
+    this->host = host;
+    this->errorPages = errorPages;
+    this->location = location;
+    this->clientMaxBodySize = clientMaxBodySize;
+
+    for (size_t i = 0; i < server.dSimple.size(); i++)
+    {
+        cfg::D_Simple   dSimple = server.dSimple[i];
+        std::string     dName = dSimple.name;
+
+        if (dSimple.name == "port")
+        {
+            this->port = portParse(server.dSimple[i]);
+        }
+        else if (dSimple == region)
+        {
+            this->region = regionParse(dSimple);
+        }
+        else if (dSimple == host)
+        {
+            this->host = hostParse(dSimple);;
+        }
+        else if (dSimple == error_pages))
+        {
+            this->errorPages = error_pages;
+        }
+    }
+}

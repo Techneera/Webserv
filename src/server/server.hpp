@@ -49,10 +49,7 @@ namespace srv
             ~Config();
 
             /* CONSTRUCTORS */
-            Config(cfg::D_Block *server);
-
-        private:
-            int portGet(const cfg::D_Simple &directive);
+            Config(const cfg::D_Block &server);
 
     };
 }
