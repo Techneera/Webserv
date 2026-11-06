@@ -4,6 +4,7 @@
 #include <iostream>
 #include <map>
 #include <vector>
+#include <stdint.h>
 
 #include "utils.hpp"
 
@@ -24,32 +25,47 @@ namespace cfg
     // @brief:  A simple enum for easy of use when checking
     //              the type of directive that is found
     //              on a look up table
-    enum    d_type
+    //          It allows for a later O(1) speed of both assigning
+    //              and checking the mandatory existence of
+    //              necessary server configurations
+    enum    e_directive_type : uint16_t
     {
-        D_SIMPLE = 0,
-        D_BLOCK = 1,
+        // Base directive types
+        e_dir_simple = 0,
+        e_dir_block = 1 << 0,
+
+        // Simple directive subtypes
+        e_port = e_dir_simple | 0 << 1,
+        e_listen = e_dir_simple | 0 << 2,
+        e_region = e_dir_simple | 0 << 3,
+        e_host = e_dir_simple | 0 << 4,
+        e_client_max_body_size = e_dir_simple | 0 << 5,
+        e_error_pages = e_dir_simple | 0 << 6,
+        e_rust = e_dir_simple | 0 << 7,
+        e_root = e_dir_simple | 0 << 8,
+
+        // Block directive subtypes
+        e_server = e_dir_block | 0 << 9,
+        e_location = e_dir_block | 0 << 10,
+        e_cgi = e_dir_block | 0 << 11,
     };
 
     // @brief:  std::map based look up table that serves
     //              as a quick way to validate any directive
     //              found on the configuration file
-    typedef std::map<std::string, d_type>  d_table;
+    typedef std::map<std::string, e_directive_type>  map_drtTable;
 
     // @brief:  Holds the Simple Directive data
-    typedef struct d_simple
-    {
-        std::string     name;
-        utl::sVector  args;
-    }   D_Simple;
+    typedef std::map<e_directive_type, utl::sVector> map_drtSimple;
 
     // @brief:  Holds the Block Directive data which contains
     //              both Simple and Block Directives
     typedef struct d_block
     {
-        std::string             name;
-        utl::sVector          args;
-        std::vector<D_Simple>   dSimple;
-        std::vector<d_block>    dBlock;
+        std::string                         name;
+        utl::sVector                        args;
+        map_drtSimple                       dSimple;
+        std::map<e_directive_type, d_block> dBlock;
     }   D_Block;
 
 
@@ -72,13 +88,4 @@ namespace cfg
     //
     // return:  void
     void                        errorPrint(int code);;
-
-    // @brief:  opens the configuration file and calls it's parser function
-    //
-    // @PARAM:  filename - webserver configuration file path
-    //
-    // @return: vector<cfg::D_Block>, an array of multiple D_Blocks that
-    //              holds the server blocks which will provide the server
-    //              class the necessary information for its instantiations
-    void                        configuration_file_init();
 }
