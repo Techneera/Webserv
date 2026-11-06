@@ -35,19 +35,17 @@ namespace cfg
         e_dir_block = 1 << 2,
 
         // Simple directive subtypes
-        e_port = e_dir_simple | 1 << 3,
-        e_listen = e_dir_simple | 1 << 4,
-        e_region = e_dir_simple | 1 << 5,
-        e_host = e_dir_simple | 1 << 6,
-        e_client_max_body_size = e_dir_simple | 1 << 7,
-        e_error_pages = e_dir_simple | 1 << 8,
-        e_rust = e_dir_simple | 1 << 9,
-        e_root = e_dir_simple | 1 << 10,
+        e_listen = e_dir_simple | 1 << 3,
+        e_host = e_dir_simple | 1 << 4,
+        e_client_max_body_size = e_dir_simple | 1 << 5,
+        e_error_pages = e_dir_simple | 1 << 6,
+        e_root = e_dir_simple | 1 << 7,
+        e_rust = e_dir_simple | 1 << 8,
 
         // Block directive subtypes
-        e_server = e_dir_block | 1 << 11,
-        e_location = e_dir_block | 1 << 12,
-        e_cgi = e_dir_block | 1 << 13,
+        e_server = e_dir_block | 1 << 9,
+        e_location = e_dir_block | 1 << 10,
+        e_cgi = e_dir_block | 1 << 11,
     };
 
     // @brief:  std::map based look up table that serves
