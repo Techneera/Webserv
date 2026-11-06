@@ -20,12 +20,10 @@ static
 void    configuration_file_init()
 {
     directiveTable["listen"] = cfg::e_listen;
-    directiveTable["region"] = cfg::e_region;
     directiveTable["host"] = cfg::e_host;
-    directiveTable["port"] = cfg::e_port;
     directiveTable["client_max_body_size"] = cfg::e_client_max_body_size;
-    directiveTable["root"] = cfg::e_root;
     directiveTable["error_pages"] = cfg::e_error_pages;
+    directiveTable["root"] = cfg::e_root;
     directiveTable[".rs"] = cfg::e_rust;
 
     directiveTable["server"] = cfg::e_server;
