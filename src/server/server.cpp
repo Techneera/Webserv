@@ -77,39 +77,18 @@ int portGet(const cfg::D_Simple &port)
 }
 
 // TODO:
-//      1- Bit Hash table to determine if all the mandatory
-//              directives are filled in
 srv::Config::Config(const cfg::D_Block &server)
 {
-    /*if (server.dSimple.size()) < MIN_CFG_DSIMPLE_SIZE
-     *      throw (static_cast<int>());*/
+    // Simple Directives
+    this->region = regionParse(dSimple);
+    this->port = portParse(server.dSimple[i]);
+    this->host = hostParse(dSimple);;
 
-    this->region = region;
-    this->host = host;
     this->errorPages = errorPages;
-    this->location = location;
+
+    this->errorPages = error_pages;
     this->clientMaxBodySize = clientMaxBodySize;
 
-    for (size_t i = 0; i < server.dSimple.size(); i++)
-    {
-        cfg::D_Simple   dSimple = server.dSimple[i];
-        std::string     dName = dSimple.name;
-
-        if (dSimple.name == "port")
-        {
-            this->port = portParse(server.dSimple[i]);
-        }
-        else if (dSimple == region)
-        {
-            this->region = regionParse(dSimple);
-        }
-        else if (dSimple == host)
-        {
-            this->host = hostParse(dSimple);;
-        }
-        else if (dSimple == error_pages))
-        {
-            this->errorPages = error_pages;
-        }
-    }
+    // Block Directives
+    this->location = location;
 }
