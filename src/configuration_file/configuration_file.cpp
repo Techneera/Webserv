@@ -8,7 +8,7 @@
 #include "configuration_file.hpp"
 
 // @brief:  Look Up table to find if the directive is a valid one
-static cfg::d_table directiveTable;
+static cfg::map_drtTable directiveTable;
 
 // @brief:  Populates the Look Up table as c++98 doesn't allow
 //                  Initialization of a map container
@@ -16,20 +16,21 @@ static cfg::d_table directiveTable;
 // @PARAM:  none
 //
 // @return: void
-void    cfg::configuration_file_init()
+static
+void    configuration_file_init()
 {
-    directiveTable["listen"] = D_SIMPLE;
-    directiveTable["region"] = D_SIMPLE;
-    directiveTable["host"] = D_SIMPLE;
-    directiveTable["port"] = D_SIMPLE;
-    directiveTable["client_max_body_size"] = D_SIMPLE;
-    directiveTable["root"] = D_SIMPLE;
-    directiveTable["error_pages"] = D_SIMPLE;
-    directiveTable[".rs"] = D_SIMPLE;
+    directiveTable["listen"] = cfg::e_listen;
+    directiveTable["region"] = cfg::e_region;
+    directiveTable["host"] = cfg::e_host;
+    directiveTable["port"] = cfg::e_port;
+    directiveTable["client_max_body_size"] = cfg::e_client_max_body_size;
+    directiveTable["root"] = cfg::e_root;
+    directiveTable["error_pages"] = cfg::e_error_pages;
+    directiveTable[".rs"] = cfg::e_rust;
 
-    directiveTable["server"] = D_BLOCK;
-    directiveTable["location"] = D_BLOCK;
-    directiveTable["cgi"] = D_BLOCK;
+    directiveTable["server"] = cfg::e_server;
+    directiveTable["location"] = cfg::e_location;
+    directiveTable["cgi"] = cfg::e_cgi;
 }
 
 // @brief:  Provides a small ease of use modification of
@@ -271,12 +272,12 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
         if (stt_parseToken(ifs, c, name) == EOF)
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-        cfg::d_table::iterator      it;
+        cfg::map_drtTable::iterator      it;
 
         if ((it = directiveTable.find(name)) == directiveTable.end())
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-        if (it->second == cfg::D_BLOCK)
+        if (it->second & cfg::e_dir_block)
         {
             if (stt_consumeNonToken(ifs, c) == EOF)
                 throw (static_cast<int>(utl::err_BadDirectiveBlock));
@@ -290,16 +291,14 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
                     throw (static_cast<int>(utl::err_BadDirectiveBlock));
             }
 
-            directiveBlock.dBlock.push_back(
-                            stt_parseDirectiveBlock(name, ifs, c));
-        }
-        else if(it->second == cfg::D_SIMPLE)
-        {
-            cfg::D_Simple    directiveSimple;
+            directiveBlock.dBlock.insert(std::make_pair(
+                        it->second, stt_parseDirectiveBlock(name, ifs, c)));
 
-            directiveSimple.name = name;
-            directiveSimple.args = stt_parseDirectiveSimple(ifs, c);
-            directiveBlock.dSimple.push_back(directiveSimple);
+        }
+        else if(it->second & cfg::e_dir_simple)
+        {
+            directiveBlock.dSimple.insert(std::make_pair(
+                        it->second, stt_parseDirectiveSimple(ifs, c)));
         }
         else
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
@@ -346,8 +345,6 @@ std::vector<cfg::D_Block> stt_parseConfig(std::ifstream &ifs, char &c)
         if (stt_parseToken(ifs, c, arg) == EOF)
             throw (static_cast<int>(utl::err_BadConfig));
 
-        cfg::d_table::iterator      it;
-
         if (arg != "server")
             throw (static_cast<int>(utl::err_BadConfig));
 
@@ -367,7 +364,7 @@ std::vector<cfg::D_Block> stt_parseConfig(std::ifstream &ifs, char &c)
 //              class the necessary information for its instantiations
 std::vector<cfg::D_Block>  cfg::fetch_config(char *filename)
 {
-    cfg::configuration_file_init();
+    configuration_file_init();
 
     std::ifstream   ifs(filename);
     if (!ifs)
