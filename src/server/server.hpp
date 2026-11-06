@@ -1,11 +1,10 @@
 #pragma once
 
 #include <iostream>
-#include <map>
 
-#include "configuration_file.hpp"
+#include "config.hpp"
 
-#define CONFIG "Config"
+#define SERVER "server"
 
 #ifndef MSG_OCF
 #define MSG_OCF
@@ -24,32 +23,24 @@
 #endif
 #endif
 
-typedef std::map<std::string, std::string>  sMap;
-
-namespace srv
+namespace   srv
 {
-    class Config
+    class   Server
     {
         public:
-            size_t          port; // port number
-            std::string     region; // just messing around, it's not needed, but it's cool
-            std::string     host; // ip address string
-            std::string     errorPages; // directory of error pages
-            std::string     clientMaxBodySize;
-            sMap            location; // to find the directory of a certain page content
+            Config  config;
 
             /* ORTHODOX CANONICAL FORM */
             // Default Constructor
-            Config();
+            Server();
             // Copy Constructor
-            Config(const Config& other);
+            Server(const Server& other);
             // Copy Assignment Operator
-            Config& operator=(const Config& other);
+            Server& operator=(const Server& other);
             // Destructor
-            ~Config();
+            ~Server();
 
-            /* CONSTRUCTORS */
-            Config(const cfg::D_Block &server);
-
+            Server(const cfg::D_Block dBlock);
     };
+
 }

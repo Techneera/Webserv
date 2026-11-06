@@ -17,11 +17,19 @@ int main(int argc, char **argv)
   std::cout << "Setting " << argv[1]
             << " as the configuration file\n";
 
-  std::vector<cfg::D_Block>  config;
-
   try
   {
-    config = cfg::fetch_config(argv[1]);
+
+    std::vector<cfg::D_Block>   config = cfg::fetch_config(argv[1]);
+    std::vector<srv::Server>    servers;
+
+    for (size_t i = 0; i < config.size(); i++)
+    {
+        srv::Server server(config[i]);
+
+        servers.push_back(server);
+    }
+
   }
   catch (int &error)
   {

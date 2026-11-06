@@ -65,6 +65,9 @@ namespace cfg
         std::map<e_directive_type, d_block> dBlock;
     }   D_Block;
 
+    //@brief: Holds the Block Directive data
+    typedef std::map<e_directive_type, d_block> map_drtBlock;
+
 
     //--------------------------------------------------------------
     // FUNCTIONS    ------------------------------------------------

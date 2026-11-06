@@ -30,8 +30,23 @@ void    utl::errorPrint(int &code)
             std::cout << "Wrong port directive!\n";
             break ;
         case err_BadPortRange:
-            std::cerr << "ERROR: Port number out of range, must be"
+            std::cerr << "Port number out of range, must be"
                       << " between 1025 and 65535" << std::endl;
+            break ;
+        case err_MissingPort:
+            std::cerr <<"Missing Port from server configuration\n";
+            break ;
+        case err_MissingIp:
+            std::cerr <<"Missing Ip from server configuration\n";
+            break ;
+        case err_MissingClientMaxBodySize:
+            std::cerr <<"Missing ClientMaxBodySize from server configuration\n";
+            break ;
+        case err_MissingErrorPages:
+            std::cerr <<"Missing ErrorPages from server configuration\n";
+            break ;
+        case err_MissingLocation:
+            std::cerr <<"Missing Location from server configuration\n";
             break ;
         default:
             std::cout << "Unknown cause!\n";
