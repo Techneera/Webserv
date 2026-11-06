@@ -31,23 +31,23 @@ namespace cfg
     enum    e_directive_type : uint16_t
     {
         // Base directive types
-        e_dir_simple = 0,
-        e_dir_block = 1 << 0,
+        e_dir_simple = 1 << 1,
+        e_dir_block = 1 << 2,
 
         // Simple directive subtypes
-        e_port = e_dir_simple | 0 << 1,
-        e_listen = e_dir_simple | 0 << 2,
-        e_region = e_dir_simple | 0 << 3,
-        e_host = e_dir_simple | 0 << 4,
-        e_client_max_body_size = e_dir_simple | 0 << 5,
-        e_error_pages = e_dir_simple | 0 << 6,
-        e_rust = e_dir_simple | 0 << 7,
-        e_root = e_dir_simple | 0 << 8,
+        e_port = e_dir_simple | 1 << 3,
+        e_listen = e_dir_simple | 1 << 4,
+        e_region = e_dir_simple | 1 << 5,
+        e_host = e_dir_simple | 1 << 6,
+        e_client_max_body_size = e_dir_simple | 1 << 7,
+        e_error_pages = e_dir_simple | 1 << 8,
+        e_rust = e_dir_simple | 1 << 9,
+        e_root = e_dir_simple | 1 << 10,
 
         // Block directive subtypes
-        e_server = e_dir_block | 0 << 9,
-        e_location = e_dir_block | 0 << 10,
-        e_cgi = e_dir_block | 0 << 11,
+        e_server = e_dir_block | 1 << 11,
+        e_location = e_dir_block | 1 << 12,
+        e_cgi = e_dir_block | 1 << 13,
     };
 
     // @brief:  std::map based look up table that serves
