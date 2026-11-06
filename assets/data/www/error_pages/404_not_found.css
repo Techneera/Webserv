@@ -1,0 +1,21 @@
+body
+{
+    /*outline: 1px solid green;*/
+
+    background-color: black;
+}
+
+h1
+{
+    color: white;
+}
+
+div
+{
+    /*outline: 1px solid blue;*/
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
