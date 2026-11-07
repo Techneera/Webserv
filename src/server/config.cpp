@@ -1,6 +1,7 @@
 #include "config.hpp"
 #include "utils.hpp"
 #include <cstdlib>
+#include <cstring>
 
 // Default Constructor
 srv::Config::Config()
@@ -10,7 +11,7 @@ srv::Config::Config()
     this->port = 0;
     this->ip = "Unknown";
     this->errorPages = "Unknown";
-    this->clientMaxBodySize = "Unknown";
+    this->clientMaxBodySize = 0;
 }
 
 // Copy Constructor
@@ -73,6 +74,68 @@ int stt_portGet(const utl::sVector &portArgs)
     return (static_cast<int>(portNo));
 }
 
+static
+std::string stt_ipGet(const utl::sVector &ipArgs)
+{
+    if (ipArgs.size() != 1)
+        throw(static_cast<int>(utl::err_BadIp));
+
+    return (ipArgs[0]);
+}
+
+// TODO:
+//      1- Parse numbers then one letter
+//      2- Parse only the letters k, m, g and only one letter
+//      3- Multiple number by letter multiplier representation
+//      4- Make an enum
+static
+long    stt_clientMaxBodySizeGet(const utl::sVector &clientMaxBodySizeArgs)
+{
+    if (clientMaxBodySizeArgs.size() != 1)
+        throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+    char        *ptr;
+    const char  *clientMaxBodySizeStr = clientMaxBodySizeArgs[0].c_str();
+    size_t      size = std::strtol(clientMaxBodySizeStr, &ptr, 10);
+    size_t      clientMaxBodySizeStrLen = strlen(clientMaxBodySizeStr);
+
+    if  (*clientMaxBodySizeStr == '-')
+        throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+    if (ptr == clientMaxBodySizeStr)
+        throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+    if (strlen(ptr) > 1)
+        throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+    switch (std::toupper(*(ptr++)))
+    {
+        case 'K':
+            if (clientMaxBodySizeStrLen > 14)
+                throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+            size *= 1024;
+            break ;
+        case 'M':
+            if (clientMaxBodySizeStrLen > 10)
+                throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+            size *= 1024 * 1024;
+            break ;
+        case 'G':
+            if (clientMaxBodySizeStrLen > 6)
+                throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+            size *= 1024UL * 1024 * 1024;
+            break ;
+        case '\0':
+            if (clientMaxBodySizeStrLen > 18)
+                throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+            break ;
+        default:
+            throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+    }
+
+    return (size);
+}
+
 // TODO:
 srv::Config::Config(const cfg::D_Block &server)
 {
@@ -88,7 +151,7 @@ srv::Config::Config(const cfg::D_Block &server)
         throw(static_cast<int>(utl::err_MissingPort));
     this->port = stt_portGet(itSimple->second);
 
-    /*if ((itSimple = dSimple.find(cfg::e_host)) == dSimpleEnd)
+    if ((itSimple = dSimple.find(cfg::e_host)) == dSimpleEnd)
         throw(static_cast<int>(utl::err_MissingIp));
     this->ip = stt_ipGet(itSimple->second);
 
@@ -96,7 +159,7 @@ srv::Config::Config(const cfg::D_Block &server)
         throw(static_cast<int>(utl::err_MissingClientMaxBodySize));
     this->clientMaxBodySize = stt_clientMaxBodySizeGet(itSimple->second);
 
-    if ((itSimple = dSimple.find(cfg::e_error_pages)) == dSimpleEnd)
+    /*if ((itSimple = dSimple.find(cfg::e_error_pages)) == dSimpleEnd)
         throw(static_cast<int>(utl::err_MissingErrorPages));
     this->errorPages = stt_errorPagesGet(itSimple->second);
 

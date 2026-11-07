@@ -40,7 +40,7 @@ namespace srv
         public:
             size_t          port; // port number
             std::string     ip; // ip address string
-            std::string     clientMaxBodySize;
+            size_t          clientMaxBodySize; // request max size
             std::string     errorPages; // directory of error pages
             sMap            location; // to find the directory of a certain page content
                                       //
@@ -57,6 +57,5 @@ namespace srv
 
             /* CONSTRUCTORS */
             Config(const cfg::D_Block &server);
-
     };
 }

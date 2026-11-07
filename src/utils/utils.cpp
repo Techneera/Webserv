@@ -1,3 +1,15 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.cpp                                          :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: avieira- <avieira-@student.42porto.com>    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/11/07 01:50:35 by avieira-          #+#    #+#             */
+/*   Updated: 2026/11/07 01:56:23 by avieira-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "utils.hpp"
 
 // @brief:  Provides a specific error for any try catch block
@@ -32,6 +44,15 @@ void    utl::errorPrint(int &code)
         case err_BadPortRange:
             std::cerr << "Port number out of range, must be"
                       << " between 1025 and 65535" << std::endl;
+            break ;
+        case err_BadIp:
+            std::cerr << "Wrong ip directive!\n";
+            break ;
+        case err_BadClientMaxBodySize:
+            std::cerr << "Wrong client_max_body_size directive!\n";
+            break ;
+        case err_BadErrorPages:
+            std::cerr << "Wrong error_pages directive!\n";
             break ;
         case err_MissingPort:
             std::cerr <<"Missing Port from server configuration\n";

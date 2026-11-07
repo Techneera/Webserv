@@ -10,13 +10,20 @@ srv::Server::Server()
 srv::Server::Server(const Server& other)
 {
     std::cout << CONSTRUCTOR_COPY_MSG(SERVER);
-    *this = other;
+
+    this->config = other.config;
 }
 
 // Copy Assignment operator
 srv::Server &srv::Server::operator=(const Server& other)
 {
     std::cout << ASSIGNMENT_OPERATOR_COPY_MSG(SERVER);
+
+    if (this != &other)
+    {
+        this->config = other.config;
+    }
+
     return *this;
 }
 

@@ -21,6 +21,9 @@ namespace   utl
         // Server Module
         err_BadPort,
         err_BadPortRange,
+        err_BadIp,
+        err_BadClientMaxBodySize,
+        err_BadErrorPages,
         err_MissingPort,
         err_MissingIp,
         err_MissingErrorPages,
