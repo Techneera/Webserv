@@ -7,7 +7,6 @@
 
 namespace   utl
 {
-
     // @brief:  Error number codes for throwing errors
     enum    e_errors
     {
@@ -24,14 +23,17 @@ namespace   utl
         err_BadIp,
         err_BadClientMaxBodySize,
         err_BadErrorPages,
+        err_BadErrorPagesDir,
         err_MissingPort,
         err_MissingIp,
         err_MissingErrorPages,
         err_MissingClientMaxBodySize,
         err_MissingLocation,
     };
-    typedef std::vector<std::string>    sVector;
-    typedef sVector::iterator           sVecIt;
+    typedef std::vector<std::string>            sVector;
+    typedef sVector::iterator                   sVecIt;
+    typedef std::map<std::string, std::string>  ssMap;
+    typedef std::map<long, std::string>         lsMap;
 
     void    errorPrint(int &error);
 };

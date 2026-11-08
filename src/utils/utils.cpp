@@ -1,15 +1,3 @@
-/* ************************************************************************** */
-/*                                                                            */
-/*                                                        :::      ::::::::   */
-/*   utils.cpp                                          :+:      :+:    :+:   */
-/*                                                    +:+ +:+         +:+     */
-/*   By: avieira- <avieira-@student.42porto.com>    +#+  +:+       +#+        */
-/*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/11/07 01:50:35 by avieira-          #+#    #+#             */
-/*   Updated: 2026/11/07 01:56:23 by avieira-         ###   ########.fr       */
-/*                                                                            */
-/* ************************************************************************** */
-
 #include "utils.hpp"
 
 // @brief:  Provides a specific error for any try catch block
@@ -53,6 +41,9 @@ void    utl::errorPrint(int &code)
             break ;
         case err_BadErrorPages:
             std::cerr << "Wrong error_pages directive!\n";
+            break ;
+        case err_BadErrorPagesDir:
+            std::cerr << "Cannot open error_pages directive!\n";
             break ;
         case err_MissingPort:
             std::cerr <<"Missing Port from server configuration\n";

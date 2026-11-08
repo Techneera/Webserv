@@ -28,24 +28,23 @@ typedef std::map<std::string, std::string>  sMap;
 
 namespace srv
 {
+    #define ERROR_PAGES_AMOUNT 40
 
     enum    e_region
     {
         e_portugal = 8000,
         e_brasil = 8001,
     };
-
-    typedef std::map<std::string, std::string>  map_response;
-
+    
     class Config
     {
         public:
             size_t          port; // port number
             std::string     ip; // ip address string
             size_t          clientMaxBodySize; // request max size
-            std::string     errorPages; // directory of error pages
-            sMap            location; // to find the directory of a certain page content
-                                      //
+            utl::lsMap      errorPages; // directory of error pages
+            sMap            location; // to find the directory of a
+                                      // certain page content
 
             /* ORTHODOX CANONICAL FORM */
             // Default Constructor
