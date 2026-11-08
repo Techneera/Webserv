@@ -35,6 +35,8 @@ namespace srv
         e_brasil = 8001,
     };
 
+    typedef std::map<std::string, std::string>  map_response;
+
     class Config
     {
         public:

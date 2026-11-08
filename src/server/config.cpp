@@ -136,13 +136,19 @@ long    stt_clientMaxBodySizeGet(const utl::sVector &clientMaxBodySizeArgs)
     return (size);
 }
 
+// TODO:
+//      1- Iterate error pages files in the directory
+//      2- Check if all mandatory exist(by name)
+//      3- Check if all are html
+//      4- Check if the html is runnable(???????)
+//      5- Save the page on map_response
 static
 std::string stt_errorPagesGet(const utl::sVector &errorPagesArgs)
 {
     if (errorPagesArgs.size() != 1)
         throw(static_cast<int>(utl::err_BadErrorPages));
 
-    std::string directory = "./files";
+    std::string directory = "errorPagesArgs[0]";
 
     for (const auto& entry : std::filesystem::directory_iterator(directory))
     {
