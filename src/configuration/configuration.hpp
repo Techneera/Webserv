@@ -2,11 +2,30 @@
 
 // INCLUDES ----------------------------------------------
 #include <iostream>
-#include <map>
 #include <vector>
 #include <stdint.h>
 
 #include "utils.hpp"
+
+
+#define CONFIG "Config"
+
+#ifndef MSG_OCF
+#define MSG_OCF
+#if MSG_LOG == 1
+#define CONSTRUCTOR_DEFAULT_MSG(object) object << " Default constructor called\n"
+#define CONSTRUCTOR_COPY_MSG(object) object << " Copy constructor called\n"
+#define DESTRUCTOR_MSG(object) object << " Destructor called\n"
+#define ASSIGNMENT_OPERATOR_COPY_MSG(object) object << " Copy assignment operator called\n"
+#define MEMBER_FUNCTION_MSG(function) function << " member function called\n"
+#else
+#define CONSTRUCTOR_DEFAULT_MSG(object) ""
+#define CONSTRUCTOR_COPY_MSG(object) ""
+#define DESTRUCTOR_MSG(object) ""
+#define ASSIGNMENT_OPERATOR_COPY_MSG(object) ""
+#define MEMBER_FUNCTION_MSG(function) ""
+#endif
+#endif
 
 // @name:   namespace cfg
 // @brief:  A namespace that defines several methods(functions,
@@ -15,11 +34,21 @@
 //              that will provide the necessary structured
 //              data for the instantiation of the server class
 namespace cfg
-{ // DEFINES -------------------------------------------
-
+{
+    // DEFINES -------------------------------------------
+    //
+    // @brief:  
+    #define ERROR_PAGES_AMOUNT 40
 
     // ---------------------------------------------------
     // TYPES ---------------------------------------------
+    //
+    // @brief:  
+    enum    e_region
+    {
+        e_portugal = 8000,
+        e_brasil = 8001,
+    };
 
     // @brief:  A simple enum for easy of use when checking
     //              the type of directive that is found
@@ -88,4 +117,28 @@ namespace cfg
     //
     // return:  void
     void                        errorPrint(int code);;
+
+    class Config
+    {
+        public:
+            size_t          port; // port number
+            std::string     ip; // ip address string
+            size_t          clientMaxBodySize; // request max size
+            utl::lsMap      errorPages; // directory of error pages
+            utl::lsMap            location; // to find the directory of a
+                                      // certain page content
+
+            /* ORTHODOX CANONICAL FORM */
+            // Default Constructor
+            Config();
+            // Copy Constructor
+            Config(const Config& other);
+            // Copy Assignment Operator
+            Config& operator=(const Config& other);
+            // Destructor
+            ~Config();
+
+            /* CONSTRUCTORS */
+            Config(const cfg::D_Block &server);
+    };
 }

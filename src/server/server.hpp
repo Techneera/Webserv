@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-#include "config.hpp"
+#include "configuration.hpp"
 
 #define SERVER "server"
 
@@ -28,7 +28,7 @@ namespace   srv
     class   Server
     {
         public:
-            Config  config;
+            cfg::Config  config;
 
             /* ORTHODOX CANONICAL FORM */
             // Default Constructor

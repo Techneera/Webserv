@@ -10,8 +10,7 @@ CONFIGURATION = configuration/configuration.cpp
 
 SIGNAL = signal/signal.cpp
 
-SERVER = server/config.cpp \
-		 server/server.cpp
+SERVER = server/server.cpp
 
 EVENT_LOOP = event_loop/event_loop.cpp
 

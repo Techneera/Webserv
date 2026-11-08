@@ -35,6 +35,6 @@ srv::Server::~Server()
 
 srv::Server::Server(const cfg::D_Block dBlock)
 {
-    this->config = Config(dBlock);
+    this->config = cfg::Config(dBlock);
 }
 
