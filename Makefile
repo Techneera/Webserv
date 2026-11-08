@@ -12,15 +12,18 @@ SIGNAL = signal/signal.cpp
 
 SERVER = server/server.cpp
 
+RESPONSE = response/response.cpp
+
 EVENT_LOOP = event_loop/event_loop.cpp
 
 UTILS = utils/utils.cpp
 
-INCLUDES = event_loop \
+INCLUDES = utils \
 		   configuration \
 		   signal \
 		   server \
-		   utils
+		   response \
+		   event_loop
 
 INCLUDE = $(INCLUDES:%=src/%)
 
@@ -31,7 +34,8 @@ SCRIPTS = $(MAIN) \
 		  $(EVENT_LOOP) \
 		  $(SIGNAL) \
 		  $(SERVER) \
-		  $(UTILS)
+		  $(UTILS) \
+		  $(RESPONSE)
 
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
 
