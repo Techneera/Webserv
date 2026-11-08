@@ -6,7 +6,7 @@ FLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDE_FLAGS)
 
 MAIN = main.cpp
 
-CONFIGURATION_FILE = configuration_file/configuration_file.cpp
+CONFIGURATION = configuration/configuration.cpp
 
 SIGNAL = signal/signal.cpp
 
@@ -18,7 +18,7 @@ EVENT_LOOP = event_loop/event_loop.cpp
 UTILS = utils/utils.cpp
 
 INCLUDES = event_loop \
-		   configuration_file \
+		   configuration \
 		   signal \
 		   server \
 		   utils
@@ -28,7 +28,7 @@ INCLUDE = $(INCLUDES:%=src/%)
 INCLUDE_FLAGS = $(addprefix -I ,$(INCLUDE))
 
 SCRIPTS = $(MAIN) \
-		  $(CONFIGURATION_FILE) \
+		  $(CONFIGURATION) \
 		  $(EVENT_LOOP) \
 		  $(SIGNAL) \
 		  $(SERVER) \

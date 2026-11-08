@@ -5,7 +5,7 @@
 #include <stdlib.h>
 
 #include "utils.hpp"
-#include "configuration_file.hpp"
+#include "configuration.hpp"
 
 // @brief:  Look Up table to find if the directive is a valid one
 static cfg::map_drtTable directiveTable;
