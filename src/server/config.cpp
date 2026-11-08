@@ -136,6 +136,33 @@ long    stt_clientMaxBodySizeGet(const utl::sVector &clientMaxBodySizeArgs)
     return (size);
 }
 
+static
+std::string stt_errorPagesGet(const utl::sVector &errorPagesArgs)
+{
+    if (errorPagesArgs.size() != 1)
+        throw(static_cast<int>(utl::err_BadErrorPages));
+
+    std::string directory = "./files";
+
+    for (const auto& entry : std::filesystem::directory_iterator(directory))
+    {
+        if (entry.is_regular_file())
+        {
+            std::ifstream file(entry.path());
+
+            if (file.is_open())
+            {
+                std::cout << "Opened: "
+                          << entry.path().filename() << std::endl;
+
+                // Process the file here
+            }
+        }
+    }
+
+    return ();
+}
+
 // TODO:
 srv::Config::Config(const cfg::D_Block &server)
 {
@@ -159,12 +186,12 @@ srv::Config::Config(const cfg::D_Block &server)
         throw(static_cast<int>(utl::err_MissingClientMaxBodySize));
     this->clientMaxBodySize = stt_clientMaxBodySizeGet(itSimple->second);
 
-    /*if ((itSimple = dSimple.find(cfg::e_error_pages)) == dSimpleEnd)
+    if ((itSimple = dSimple.find(cfg::e_error_pages)) == dSimpleEnd)
         throw(static_cast<int>(utl::err_MissingErrorPages));
     this->errorPages = stt_errorPagesGet(itSimple->second);
 
     // Block Directives
-    cfg::map_drtBlock               dBlock = server.dBlock;
+    /*cfg::map_drtBlock               dBlock = server.dBlock;
     cfg::map_drtBlock::iterator     itBlock;
     cfg::map_drtBlock::iterator     dBlockEnd = dBlock.end();
 
