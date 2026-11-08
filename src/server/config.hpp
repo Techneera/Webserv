@@ -3,7 +3,7 @@
 #include <iostream>
 #include <map>
 
-#include "configuration_file.hpp"
+#include "configuration.hpp"
 
 #define CONFIG "Config"
 

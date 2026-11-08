@@ -3,7 +3,7 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "configuration_file.hpp"
+#include "configuration.hpp"
 #include "server.hpp"
 
 int main(int argc, char **argv)
