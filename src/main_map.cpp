@@ -1,4 +1,4 @@
-#include "configuration_file.hpp"
+#include "configuration.hpp"
 
 #include <vector>
 

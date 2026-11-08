@@ -1,5 +1,5 @@
 #include "event_loop.hpp"
-#include "configuration_file.hpp"
+#include "configuration.hpp"
 #include "signal.h"
 
 #include <sys/types.h>
