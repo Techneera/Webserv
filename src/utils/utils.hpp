@@ -24,6 +24,7 @@ namespace   utl
         err_BadClientMaxBodySize,
         err_BadErrorPages,
         err_BadErrorPagesDir,
+        err_BadErrorPagesAmount,
         err_MissingPort,
         err_MissingIp,
         err_MissingErrorPages,
