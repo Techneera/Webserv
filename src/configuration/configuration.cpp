@@ -556,6 +556,9 @@ utl::lsMap stt_errorPagesGet(const utl::sVector &errorPagesArgs)
         if (ptr == file)
             continue ;
 
+        if (std::strcmp(ptr, ".html") != 0)
+            continue ;
+
         if ((errorCode >= 400 && errorCode <= 418)
             || (errorCode >= 421 && errorCode <= 426)
             || (errorCode == 428) || (errorCode == 429)
@@ -570,6 +573,9 @@ utl::lsMap stt_errorPagesGet(const utl::sVector &errorPagesArgs)
             errorPagesCount++;
         }
     }
+
+    if (errorPagesCount != ERROR_PAGES_AMOUNT)
+        throw (static_cast<int>(utl::err_BadErrorPagesAmount));
 
     closedir(errorPagesDir);
 

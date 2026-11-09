@@ -45,6 +45,9 @@ void    utl::errorPrint(int &code)
         case err_BadErrorPagesDir:
             std::cerr << "Cannot open error_pages directive!\n";
             break ;
+        case err_BadErrorPagesAmount:
+            std::cerr <<"Unexpected amount of error pages\n";
+            break ;
         case err_MissingPort:
             std::cerr <<"Missing Port from server configuration\n";
             break ;

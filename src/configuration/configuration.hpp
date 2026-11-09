@@ -37,7 +37,7 @@ namespace cfg
 {
     // DEFINES -------------------------------------------
     //
-    // @brief:  
+    // @brief:  Amount of unique error pages that needs to exist
     #define ERROR_PAGES_AMOUNT 40
 
     // ---------------------------------------------------
@@ -118,6 +118,8 @@ namespace cfg
     // return:  void
     void                        errorPrint(int code);;
 
+    // @brief:  configuration class that hold the parses information of
+    //              a single server
     class Config
     {
         public:
@@ -125,7 +127,7 @@ namespace cfg
             std::string     ip; // ip address string
             size_t          clientMaxBodySize; // request max size
             utl::lsMap      errorPages; // directory of error pages
-            utl::lsMap            location; // to find the directory of a
+            utl::lsMap      location; // to find the directory of a
                                       // certain page content
 
             /* ORTHODOX CANONICAL FORM */
