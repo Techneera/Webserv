@@ -41,6 +41,8 @@ class Server
         // @brief:  Amount of unique error pages that needs to exist
         static const size_t _errorCodesNo;
         Config              config;
+        int                 serverSocket;
+        int                 clientSocket;
 
         /* ORTHODOX CANONICAL FORM */
         // Default Constructor
