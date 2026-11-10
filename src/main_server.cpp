@@ -21,11 +21,11 @@ int main(int argc, char **argv)
   {
 
     std::vector<cfg::D_Block>   config = cfg::fetch_config(argv[1]);
-    std::vector<srv::Server>    servers;
+    std::vector<Server>    servers;
 
     for (size_t i = 0; i < config.size(); i++)
     {
-        srv::Server server(config[i]);
+        Server server(config[i]);
 
         servers.push_back(server);
     }
