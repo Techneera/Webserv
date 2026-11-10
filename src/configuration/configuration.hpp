@@ -37,8 +37,6 @@ namespace cfg
 {
     // DEFINES -------------------------------------------
     //
-    // @brief:  Amount of unique error pages that needs to exist
-    #define ERROR_PAGES_AMOUNT 40
 
     // ---------------------------------------------------
     // TYPES ---------------------------------------------
@@ -97,7 +95,6 @@ namespace cfg
     //@brief: Holds the Block Directive data
     typedef std::map<e_directive_type, d_block> map_drtBlock;
 
-
     //--------------------------------------------------------------
     // FUNCTIONS    ------------------------------------------------
 
@@ -109,38 +106,4 @@ namespace cfg
     //              holds the server blocks which will provide the server
     //              class the necessary information for its instantiations
     std::vector<cfg::D_Block>   fetch_config(char *filename);
-
-    // @brief:  Provides a specific error for any try catch block
-    //              that catches a throw from the cfg namespace
-    //
-    // @PARAM:  code - the error code to determine error message
-    //
-    // return:  void
-    void                        errorPrint(int code);;
-
-    // @brief:  configuration class that hold the parses information of
-    //              a single server
-    class Config
-    {
-        public:
-            size_t          port; // port number
-            std::string     ip; // ip address string
-            size_t          clientMaxBodySize; // request max size
-            utl::lsMap      errorPages; // directory of error pages
-            utl::lsMap      location; // to find the directory of a
-                                      // certain page content
-
-            /* ORTHODOX CANONICAL FORM */
-            // Default Constructor
-            Config();
-            // Copy Constructor
-            Config(const Config& other);
-            // Copy Assignment Operator
-            Config& operator=(const Config& other);
-            // Destructor
-            ~Config();
-
-            /* CONSTRUCTORS */
-            Config(const cfg::D_Block &server);
-    };
 }

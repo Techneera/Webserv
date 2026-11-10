@@ -23,24 +23,34 @@
 #endif
 #endif
 
-namespace   srv
+// @brief:  configuration struct that hold the parses information of
+//              a single server
+typedef struct config
 {
-    class   Server
-    {
-        public:
-            cfg::Config  config;
+    size_t          port; // port number
+    std::string     ip; // ip address string
+    size_t          clientMaxBodySize; // request max size
+    utl::lsMap      errorPages; // directory of error pages
+    utl::lsMap      location; // to find the directory of a
+                              // certain page content
+}   Config;
 
-            /* ORTHODOX CANONICAL FORM */
-            // Default Constructor
-            Server();
-            // Copy Constructor
-            Server(const Server& other);
-            // Copy Assignment Operator
-            Server& operator=(const Server& other);
-            // Destructor
-            ~Server();
+class Server
+{
+    public:
+        // @brief:  Amount of unique error pages that needs to exist
+        static const size_t _errorCodesNo;
+        Config              config;
 
-            Server(const cfg::D_Block dBlock);
-    };
+        /* ORTHODOX CANONICAL FORM */
+        // Default Constructor
+        Server();
+        // Copy Constructor
+        Server(const Server& other);
+        // Copy Assignment Operator
+        Server& operator=(const Server& other);
+        // Destructor
+        ~Server();
 
-}
+        Server(const cfg::D_Block &dBlock);
+};
