@@ -46,8 +46,13 @@ Server::~Server()
 }
 
 static
-int stt_portGet(const utl::sVector &portArgs)
+int stt_portGet(const std::vector<utl::sVector> &portVector)
 {
+    if (portVector.size() != 1)
+        throw(static_cast<int>(utl::err_BadPort));
+
+    utl::sVector    portArgs = portVector[0];
+
     if (portArgs.size() != 1)
         throw(static_cast<int>(utl::err_BadPort));
 
@@ -73,13 +78,19 @@ int stt_portGet(const utl::sVector &portArgs)
     return (static_cast<int>(portNo));
 }
 
+// TODO:
+//      1- Verify ipVector validity
+//      2- Maybe use already the ip converter function already
 static
-std::string stt_ipGet(const utl::sVector &ipArgs)
+std::string stt_ipGet(const std::vector<utl::sVector> &ipVector)
 {
-    if (ipArgs.size() != 1)
+    if (ipVector.size() != 1)
         throw(static_cast<int>(utl::err_BadIp));
 
-    return (ipArgs[0]);
+    if (ipVector[0].size() != 1)
+        throw(static_cast<int>(utl::err_BadIp));
+
+    return (ipVector[0][0]);
 }
 
 // TODO:
@@ -88,8 +99,14 @@ std::string stt_ipGet(const utl::sVector &ipArgs)
 //      3- Multiple number by letter multiplier representation
 //      4- Make an enum
 static
-long    stt_clientMaxBodySizeGet(const utl::sVector &clientMaxBodySizeArgs)
+long    stt_clientMaxBodySizeGet(
+            const std::vector<utl::sVector> &clientMaxBodySizeVector)
 {
+    if (clientMaxBodySizeVector.size() != 1)
+        throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+    utl::sVector    clientMaxBodySizeArgs = clientMaxBodySizeVector[0];
+
     if (clientMaxBodySizeArgs.size() != 1)
         throw(static_cast<int>(utl::err_BadClientMaxBodySize));
 
@@ -146,8 +163,13 @@ long    stt_clientMaxBodySizeGet(const utl::sVector &clientMaxBodySizeArgs)
 //      4- Check if the html is runnable(???????)
 //      5- Save the page on map_response
 static
-utl::lsMap stt_errorPagesGet(const utl::sVector &errorPagesArgs)
+utl::lsMap stt_errorPagesGet(const std::vector<utl::sVector> &errorPagesVector)
 {
+    if (errorPagesVector.size() != 1)
+        throw(static_cast<int>(utl::err_BadErrorPages));
+
+    utl::sVector    errorPagesArgs  = errorPagesVector[0];
+
     if (errorPagesArgs.size() != 1)
         throw(static_cast<int>(utl::err_BadErrorPages));
 

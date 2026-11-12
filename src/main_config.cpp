@@ -19,7 +19,7 @@ int main(int argc, char **argv)
   //        2 - Maybe give it struct address to populate with 
   //            necessary instructions/info suchs as port,
   //            or file dir
-  std::vector<cfg::D_Block>  config;
+  cfg::D_Block  config;
 
   try
   {

@@ -54,7 +54,7 @@ namespace cfg
     //          It allows for a later O(1) speed of both assigning
     //              and checking the mandatory existence of
     //              necessary server configurations
-    enum    e_directive_type : uint16_t
+    enum    e_directive_type : size_t
     {
         // Base directive types
         e_dir_simple = 1 << 1,
@@ -69,9 +69,10 @@ namespace cfg
         e_rust = e_dir_simple | 1 << 8,
 
         // Block directive subtypes
-        e_server = e_dir_block | 1 << 9,
-        e_location = e_dir_block | 1 << 10,
-        e_cgi = e_dir_block | 1 << 11,
+        e_http = e_dir_block | 1 << 9,
+        e_location = e_dir_block | 1 << 11,
+        e_cgi = e_dir_block | 1 << 12,
+        e_server = e_dir_block | 1 << 15,
     };
 
     // @brief:  std::map based look up table that serves
@@ -80,16 +81,16 @@ namespace cfg
     typedef std::map<std::string, e_directive_type>  map_drtTable;
 
     // @brief:  Holds the Simple Directive data
-    typedef std::map<e_directive_type, utl::sVector> map_drtSimple;
+    typedef std::map<e_directive_type, std::vector<utl::sVector> > map_drtSimple;
 
     // @brief:  Holds the Block Directive data which contains
     //              both Simple and Block Directives
     typedef struct d_block
     {
-        std::string                         name;
-        utl::sVector                        args;
-        map_drtSimple                       dSimple;
-        std::map<e_directive_type, d_block> dBlock;
+        std::string                                         name;
+        utl::sVector                                        args;
+        map_drtSimple                                       dSimple;
+        std::map<e_directive_type, std::vector<d_block> >   dBlock;
     }   D_Block;
 
     //@brief: Holds the Block Directive data
@@ -105,5 +106,5 @@ namespace cfg
     // @return: vector<cfg::D_Block>, an array of multiple D_Blocks that
     //              holds the server blocks which will provide the server
     //              class the necessary information for its instantiations
-    std::vector<cfg::D_Block>   fetch_config(char *filename);
+    cfg::D_Block   fetch_config(char *filename);
 }

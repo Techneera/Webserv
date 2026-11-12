@@ -30,6 +30,7 @@ void    configuration_file_init()
     directiveTable["root"] = cfg::e_root;
     directiveTable[".rs"] = cfg::e_rust;
 
+    directiveTable["http"] = cfg::e_http;
     directiveTable["server"] = cfg::e_server;
     directiveTable["location"] = cfg::e_location;
     directiveTable["cgi"] = cfg::e_cgi;
@@ -244,14 +245,13 @@ static
 cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
                                         char &c)
 {
-    cfg::D_Block directiveBlock;
+    cfg::D_Block    directiveBlock;
 
     if (c != '{')
         throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
     if (!ifs.get(c))
         throw (static_cast<int>(utl::err_BadDirectiveBlock));
-
 
     directiveBlock.name = _name;
 
@@ -293,14 +293,24 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
                     throw (static_cast<int>(utl::err_BadDirectiveBlock));
             }
 
-            directiveBlock.dBlock.insert(std::make_pair(
-                        it->second, stt_parseDirectiveBlock(name, ifs, c)));
+            std::vector<cfg::D_Block> dBlockVector;
+            std::map<cfg::e_directive_type, std::vector<cfg::D_Block> > map;
+
+            dBlockVector = directiveBlock.dBlock[it->second];
+            dBlockVector.push_back(stt_parseDirectiveBlock(name, ifs, c));
+            map.insert(std::make_pair(it->second, dBlockVector));
+            directiveBlock.dBlock = map;
 
         }
         else if(it->second & cfg::e_dir_simple)
         {
-            directiveBlock.dSimple.insert(std::make_pair(
-                        it->second, stt_parseDirectiveSimple(ifs, c)));
+            std::vector<utl::sVector>   sVectorVector;
+            std::map<cfg::e_directive_type, std::vector<utl::sVector> > map;
+
+            sVectorVector = directiveBlock.dSimple[it->second];
+            sVectorVector.push_back(stt_parseDirectiveSimple(ifs, c));
+            map.insert(std::make_pair(it->second, sVectorVector));
+            directiveBlock.dSimple = map;
         }
         else
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
@@ -328,33 +338,41 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
 //              6 -         throw an error
 //              7 - Return Block Directives vector
 static
-std::vector<cfg::D_Block> stt_parseConfig(std::ifstream &ifs, char &c)
+cfg::D_Block stt_parseConfig(std::ifstream &ifs, char &c)
 {
-    std::string                 arg;
-    std::vector<cfg::D_Block>   config;
+    std::string     arg;
+    cfg::D_Block    config;
+
+    if (!ifs.get(c))
+        throw (static_cast<int>(utl::err_BadConfig));
+
+    if (stt_consumeNonToken(ifs, c) == EOF)
+        throw (static_cast<int>(utl::err_BadConfig));
+
+    if (stt_parseToken(ifs, c, arg) == EOF)
+        throw (static_cast<int>(utl::err_BadConfig));
+
+    if (arg != "http")
+        throw (static_cast<int>(utl::err_BadConfig));
+
+    if (stt_consumeNonToken(ifs, c) == EOF)
+        return (config);
+
+    config = stt_parseDirectiveBlock(arg, ifs, c);
 
     while (1)
     {
         if (!ifs.get(c))
             return (config);
 
-        if (stt_consumeNonToken(ifs, c) == EOF)
+        if (stt_consumeComments(ifs, c) == EOF)
             return (config);
-
-        if (c == ';' || c == '}' || c == '{')
-            throw (static_cast<int>(utl::err_BadConfig));
-
-        if (stt_parseToken(ifs, c, arg) == EOF)
-            throw (static_cast<int>(utl::err_BadConfig));
-
-        if (arg != "server")
-            throw (static_cast<int>(utl::err_BadConfig));
-
-        if (stt_consumeNonToken(ifs, c) == EOF)
+        else if (stt_consumeNewLines(ifs, c) == EOF)
             return (config);
-
-        config.push_back(stt_parseDirectiveBlock("server", ifs, c));
+        else
+            throw (static_cast<int>(utl::err_BadConfig));
     }
+
 }
 
 // @brief:  opens the configuration file and calls it's parser function
@@ -364,7 +382,7 @@ std::vector<cfg::D_Block> stt_parseConfig(std::ifstream &ifs, char &c)
 // @return: vector<cfg::D_Block>, an array of multiple D_Blocks that
 //              holds the server blocks which will provide the server
 //              class the necessary information for its instantiations
-std::vector<cfg::D_Block>  cfg::fetch_config(char *filename)
+cfg::D_Block  cfg::fetch_config(char *filename)
 {
     configuration_file_init();
 
