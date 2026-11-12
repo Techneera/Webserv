@@ -20,12 +20,21 @@ int main(int argc, char **argv)
   try
   {
 
-    std::vector<cfg::D_Block>   config = cfg::fetch_config(argv[1]);
-    std::vector<Server>    servers;
+    cfg::D_Block        http = cfg::fetch_config(argv[1]);
+    std::vector<Server> servers;
+    std::map<cfg::e_directive_type, std::vector<cfg::D_Block> >::iterator   it;
 
-    for (size_t i = 0; i < config.size(); i++)
+    if ((it = http.dBlock.find(cfg::e_server)) == http.dBlock.end())
+        exit(1);
+
+    if (http.dBlock.size() != 1)
+        exit(1);
+
+    std::vector<cfg::D_Block>   configs = it->second;
+
+    for (size_t i = 0; i < configs.size(); i++)
     {
-        Server server(config[i]);
+        Server server(configs[i]);
 
         servers.push_back(server);
     }
