@@ -293,24 +293,17 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
                     throw (static_cast<int>(utl::err_BadDirectiveBlock));
             }
 
-            std::vector<cfg::D_Block> dBlockVector;
-            std::map<cfg::e_directive_type, std::vector<cfg::D_Block> > map;
-
-            dBlockVector = directiveBlock.dBlock[it->second];
+            std::vector<cfg::D_Block>   &dBlockVector =
+                            directiveBlock.dBlock[it->second];
             dBlockVector.push_back(stt_parseDirectiveBlock(name, ifs, c));
-            map.insert(std::make_pair(it->second, dBlockVector));
-            directiveBlock.dBlock = map;
-
         }
         else if(it->second & cfg::e_dir_simple)
         {
-            std::vector<utl::sVector>   sVectorVector;
-            std::map<cfg::e_directive_type, std::vector<utl::sVector> > map;
-
-            sVectorVector = directiveBlock.dSimple[it->second];
+            std::vector<utl::sVector>   &sVectorVector =
+                            directiveBlock.dSimple[it->second];
             sVectorVector.push_back(stt_parseDirectiveSimple(ifs, c));
-            map.insert(std::make_pair(it->second, sVectorVector));
-            directiveBlock.dSimple = map;
+            directiveBlock.dSimple.insert(std::make_pair(
+                        it->second, sVectorVector));
         }
         else
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
