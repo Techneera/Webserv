@@ -3,43 +3,7 @@
 
 # include <string>
 # include <stdint.h>
-
-/**
- * @enum FormType_e
- * @brief Identifies the request-target form used in an HTTP request.
- */
-enum FormType_e
-{
-    FORM_ABSOLUTE_e, /**< Absolute-form request target. */
-    FORM_ORIGIN_e    /**< Origin-form request target. */
-};
-
-/**
- * @struct OriginForm_t
- * @brief Represents an HTTP origin-form request target.
- *
- * Contains the path and optional query component.
- */
-typedef struct
-{
-    std::string path;  /**< Request target path. */
-    std::string query; /**< Query component, if present. */
-} OriginForm_t;
-
-/**
- * @struct AbsoluteForm_t
- * @brief Represents an HTTP absolute-form request target.
- *
- * Contains the URI scheme, host, optional port, path and query.
- */
-typedef struct
-{
-    std::string scheme; /**< URI scheme (e.g. http or https). */
-    std::string host;   /**< Target host name. */
-    std::string path;   /**< Request target path. */
-    std::string query;  /**< Query component, if present. */
-    uint16_t    port;   /**< Target port number. */
-} AbsoluteForm_t;
+# include <map>
 
 /**
  * @struct RequestTarget_t
@@ -50,9 +14,8 @@ typedef struct
  */
 typedef struct
 {
-    FormType_e      type;     /**< Active request-target form. */
-    OriginForm_t    origin;   /**< Origin-form representation. */
-    AbsoluteForm_t  absolute; /**< Absolute-form representation. */
+    std::string path;  /**< Request target path. */
+    std::multimap<std::string, std::string> query; /**< Query component, if present. */
 } RequestTarget_t;
 
 /**
@@ -64,8 +27,8 @@ typedef struct
 typedef struct
 {
     std::string     method;        /**< HTTP method (e.g. GET, POST). */
+    std::string     version;       /**< HTTP version identifier. */
     RequestTarget_t requestTarget; /**< Request-target information. */
-    uint8_t         version;       /**< HTTP version identifier. */
 } RequestLine_t;
 
 /**

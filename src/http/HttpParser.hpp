@@ -1,4 +1,3 @@
-
 #ifndef HTTP_PARSER_HPP
 # define HTTP_PARSER_HPP
 
@@ -47,6 +46,7 @@ class HttpParser
         ParsingResult_e result;
         ParsingStage_e  stage;
         std::string     data;
+        std::string     buffer;
 
         // Disable copying to prevent shallow copying.
         HttpParser(const HttpParser& other);
@@ -72,6 +72,14 @@ class HttpParser
          */
         void parseMessageBody();
 
+        void parseQueryParam(std::string params);
+
+        bool isToken(const char& c);
+
+        bool isPchar(const std::string& str, size_t pos);
+
+        bool isPctEncoded(const std::string& str, size_t pos);
+
     public:
         /**
          * @brief Constructs an HTTP parser.
@@ -88,7 +96,7 @@ class HttpParser
          * @param input Incoming HTTP request data.
          * @return Current parsing result.
          */
-        ParsingResult_e feed(const char* input);
+        ParsingResult_e feed(const char* input, size_t bytesRead);
 
         /**
          * @brief Retrieves the completed HTTP request.
