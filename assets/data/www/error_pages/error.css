@@ -1,0 +1,27 @@
+body
+{
+    /*outline: 1px solid green;*/
+
+    background-color: black;
+}
+
+h1
+{
+    color: brown;
+    font-size: 70px;
+}
+
+h2
+{
+    color: white;
+}
+
+div
+{
+    /*outline: 1px solid blue;*/
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
