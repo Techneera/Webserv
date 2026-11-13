@@ -27,7 +27,6 @@ SCRIPTS = $(MAIN) \
 		  $(CONFIGURATION_FILE) \
 		  $(EVENT_LOOP) \
 		  $(SIGNAL) \
-		  $(HTTP)
 
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
 
