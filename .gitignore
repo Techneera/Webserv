@@ -44,7 +44,6 @@ build/
 Build/
 build-*/
 bin
-webserv
 
 # CMake generated files
 CMakeFiles/
