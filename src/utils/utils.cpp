@@ -48,6 +48,9 @@ void    utl::errorPrint(int &code)
         case err_BadErrorPagesAmount:
             std::cerr <<"Unexpected amount of error pages\n";
             break ;
+        case err_BadHttpBlock:
+            std::cerr <<"Expected server block\n";
+            break ;
         case err_MissingPort:
             std::cerr <<"Missing Port from server configuration\n";
             break ;

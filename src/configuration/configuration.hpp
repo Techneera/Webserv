@@ -40,7 +40,8 @@
 namespace cfg
 {
     // DEFINES -------------------------------------------
-    //
+    // @brief:  expected number of error code pages 
+    #define ERROR_PAGES_SIZE 40
 
     // ---------------------------------------------------
     // TYPES ---------------------------------------------
@@ -100,6 +101,18 @@ namespace cfg
     //@brief: Holds the Directive Block data
     typedef std::multimap<e_directive_type, s_dBlock> mmap_dBlock;
 
+    // @brief:  configuration struct that holds, semantically
+    //              parsed, the information of a single server
+    typedef struct s_config
+    {
+        size_t          port; // port number
+        std::string     ip; // ip address string
+        size_t          clientMaxBodySize; // request max size
+        utl::lsMap      errorPages; // directory of error pages
+        utl::lsMap      location; // to find the directory of a
+                                  // certain page content
+    }   s_config;
+
     //--------------------------------------------------------------
     // FUNCTIONS    ------------------------------------------------
 
@@ -107,8 +120,6 @@ namespace cfg
     //
     // @PARAM:  filename - webserver configuration file path
     //
-    // @return: vector<cfg::D_Block>, an array of multiple D_Blocks that
-    //              holds the server blocks which will provide the server
-    //              class the necessary information for its instantiations
-    cfg::s_dBlock   fetch_config(char *filename);
+    // @return: vector<cfg::s_config>
+    std::vector<s_config>   fetch_config(char *filename);
 }

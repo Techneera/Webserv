@@ -12,382 +12,584 @@
 #include "utils.hpp"
 #include "configuration.hpp"
 
-// @brief:  Look Up table to find if the directive is a valid one
-static cfg::map_dTable directiveTable;
-
-// @brief:  Populates the Look Up table as c++98 doesn't allow
-//                  Initialization of a map container
-//
-// @PARAM:  none
-//
-// @return: void
-static
-void    configuration_file_init()
+namespace   cfg
 {
-    directiveTable["listen"] = cfg::e_listen;
-    directiveTable["host"] = cfg::e_host;
-    directiveTable["client_max_body_size"] = cfg::e_client_max_body_size;
-    directiveTable["error_pages"] = cfg::e_error_pages;
-    directiveTable["root"] = cfg::e_root;
-    directiveTable[".rs"] = cfg::e_rust;
 
-    directiveTable["http"] = cfg::e_http;
-    directiveTable["server"] = cfg::e_server;
-    directiveTable["location"] = cfg::e_location;
-    directiveTable["cgi"] = cfg::e_cgi;
-}
+    // @brief:  Look Up table to find if the directive is a valid one
+    static map_dTable directiveTable;
 
-// @brief:  Provides a small ease of use modification of
-//              the standard ifstream method get()
-//
-// @PARAM:  ifstream - config file stream; c - holds next char
-//
-// @return: int (to be able to return both EOF or any char)
-static
-int stt_get(std::ifstream &ifstream, char &c)
-{
-    if (!ifstream.get(c))
-        return (EOF);
-
-    return (c);
-}
-
-// @brief:  Consumes Spaces of a ifstream
-//
-// @PARAM:  ifstream - config file stream; c - holds next char
-//
-// @return: int (EOF or next char)
-static
-int stt_consumeSpaces(std::ifstream &ifs, char &c)
-{
-    int i;
-
-    while ((i = stt_get(ifs, c)) != EOF)
+    // @brief:  Populates the Look Up table as c++98 doesn't allow
+    //                  Initialization of a map container
+    //
+    // @PARAM:  none
+    //
+    // @return: void
+    static void    configuration_file_init()
     {
-        if (!std::isspace(c))
-            break ;
+        directiveTable["listen"] = e_listen;
+        directiveTable["host"] = e_host;
+        directiveTable["client_max_body_size"] = e_client_max_body_size;
+        directiveTable["error_pages"] = e_error_pages;
+        directiveTable["root"] = e_root;
+        directiveTable[".rs"] = e_rust;
+
+        directiveTable["http"] = e_http;
+        directiveTable["server"] = e_server;
+        directiveTable["location"] = e_location;
+        directiveTable["cgi"] = e_cgi;
     }
 
-    return (i);
-}
-
-// @brief:  Consumes Comments of a ifstream
-//
-// @PARAM:  ifstream - config file stream; c - holds next char
-//
-// @return: int (EOF or next char)
-static
-int stt_consumeComments(std::ifstream &ifs, char &c)
-{
-    int     i;
-
-    while ((i = stt_get(ifs, c)) != '\n')
-        if (i == EOF)
-            break ;
-
-    return (i);
-}
-
-// @brief:  Consumes new line chars of a ifstream
-//
-// @PARAM:  ifstream - config file stream; c - holds next char
-//
-// @return: int (EOF or next char)
-static
-int stt_consumeNewLines(std::ifstream &ifs, char &c)
-{
-    int i;
-
-    while ((i = stt_get(ifs, c)) == '\n');
-
-    return (i);
-}
-
-// @brief:      Consumes any blocks of characters that are
-//                  not relevant for the webserver configuration
-//                  such as comments, new lines and spaces
-//
-// @PARAM:      ifstream - config file stream; c - holds next char
-//
-// @return:     int (EOF or next char)
-//
-// @details:    1 - Check which is the current char
-//              2 - If current char is '\n', consume any '\n' lines
-//              3 - If current char is '#', consume comment line
-//              4 - If current char is '<space>', consume spaces
-//              5 - Else,  it is the start of a token, so return char
-static
-int stt_consumeNonToken(std::ifstream &ifs, char &c)
-{
-    if  (c != '\n' && c != '#' && !std::isspace(c))
-        return  (c);
-
-    while (1)
+    // @brief:  Provides a small ease of use modification of
+    //              the standard ifstream method get()
+    //
+    // @PARAM:  ifstream - config file stream; c - holds next char
+    //
+    // @return: int (to be able to return both EOF or any char)
+    static int stt_get(std::ifstream &ifstream, char &c)
     {
-        if (c == '\n')
+        if (!ifstream.get(c))
+            return (EOF);
+
+        return (c);
+    }
+
+    // @brief:  Consumes Spaces of a ifstream
+    //
+    // @PARAM:  ifstream - config file stream; c - holds next char
+    //
+    // @return: int (EOF or next char)
+    static int stt_consumeSpaces(std::ifstream &ifs, char &c)
+    {
+        int i;
+
+        while ((i = stt_get(ifs, c)) != EOF)
         {
-            if (stt_consumeNewLines(ifs, c) == EOF)
-                return (EOF);
+            if (!std::isspace(c))
+                break ;
         }
-        else if (c == '#')
+
+        return (i);
+    }
+
+    // @brief:  Consumes Comments of a ifstream
+    //
+    // @PARAM:  ifstream - config file stream; c - holds next char
+    //
+    // @return: int (EOF or next char)
+    static int stt_consumeComments(std::ifstream &ifs, char &c)
+    {
+        int     i;
+
+        while ((i = stt_get(ifs, c)) != '\n')
+            if (i == EOF)
+                break ;
+
+        return (i);
+    }
+
+    // @brief:  Consumes new line chars of a ifstream
+    //
+    // @PARAM:  ifstream - config file stream; c - holds next char
+    //
+    // @return: int (EOF or next char)
+    static int stt_consumeNewLines(std::ifstream &ifs, char &c)
+    {
+        int i;
+
+        while ((i = stt_get(ifs, c)) == '\n');
+
+        return (i);
+    }
+
+    // @brief:      Consumes any blocks of characters that are
+    //                  not relevant for the webserver configuration
+    //                  such as comments, new lines and spaces
+    //
+    // @PARAM:      ifstream - config file stream; c - holds next char
+    //
+    // @return:     int (EOF or next char)
+    //
+    // @details:    1 - Check which is the current char
+    //              2 - If current char is '\n', consume any '\n' lines
+    //              3 - If current char is '#', consume comment line
+    //              4 - If current char is '<space>', consume spaces
+    //              5 - Else,  it is the start of a token, so return char
+    static int stt_consumeNonToken(std::ifstream &ifs, char &c)
+    {
+        if  (c != '\n' && c != '#' && !std::isspace(c))
+            return  (c);
+
+        while (1)
         {
-            if (stt_consumeComments(ifs, c) == EOF)
-                return  (EOF);
+            if (c == '\n')
+            {
+                if (stt_consumeNewLines(ifs, c) == EOF)
+                    return (EOF);
+            }
+            else if (c == '#')
+            {
+                if (stt_consumeComments(ifs, c) == EOF)
+                    return  (EOF);
+            }
+            else if (std::isspace(c))
+            {
+                if (stt_consumeSpaces(ifs, c) == EOF)
+                    return  (EOF);
+            }
+            else
+                break ;
         }
-        else if (std::isspace(c))
+
+        return (1);
+    }
+
+    // @brief:  Saves next token in <token> param. A token is any
+    //             block of the config file ifstream that is
+    //             separated by spaces, is not a comment, is not
+    //             a new line, EOF or any special character that
+    //             determines the end or the beggining of a simple
+    //             or block directive
+    //
+    // @PARAM:  ifstream - config file stream; c - holds next char;
+    //             token - token to be saved
+    //
+    // @return: int (EOF or next char)
+    static int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
+    {
+        token = "";
+
+        while (c != '#' && c != '\n' && c != ';' && c != '}'
+                && c != '{' && !std::isspace(c))
         {
+            token += c;
+            if (stt_get(ifs, c) == EOF)
+                return EOF;
+        }
+
+        return (1);
+    }
+
+    // @brief:  parses ifstream until the char ';' which determines
+    //              the end of a simple directive section
+    //
+    // @PARAM:  ifstream - config file stream; c - holds next char;
+    //              token - token to be saved
+    //
+    // @return: vector<std::string> that holds the arguments that
+    //              succeed the directive name
+    //
+    // @details:    1 - While the char ';' is not found
+    //              2 -     Parse next token
+    //              3 -     Add token to a tokens vector
+    //              4 - Return the tokens vector
+    static utl::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
+    {
+        std::string     arg;
+        utl::sVector  args(0);
+
+        while (1)
+        {
+            if (c == '#' || c == '\n' || c == '}' || c == '{')
+                throw (static_cast<int>(utl::err_BadDirectiveSimple));
+
             if (stt_consumeSpaces(ifs, c) == EOF)
-                return  (EOF);
-        }
-        else
-            break ;
-    }
+                throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
-    return (1);
-}
+            if (c == '#' || c == '\n' || c == ';' || c == '}'
+                    || c == '{')
+                throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
-// @brief:  Saves next token in <token> param. A token is any
-//             block of the config file ifstream that is
-//             separated by spaces, is not a comment, is not
-//             a new line, EOF or any special character that
-//             determines the end or the beggining of a simple
-//             or block directive
-//
-// @PARAM:  ifstream - config file stream; c - holds next char;
-//             token - token to be saved
-//
-// @return: int (EOF or next char)
-static
-int stt_parseToken(std::ifstream &ifs, char &c, std::string &token)
-{
-    token = "";
+            if (stt_parseToken(ifs, c, arg) == EOF)
+                throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
-    while (c != '#' && c != '\n' && c != ';' && c != '}'
-            && c != '{' && !std::isspace(c))
-    {
-        token += c;
-        if (stt_get(ifs, c) == EOF)
-            return EOF;
-    }
+            args.push_back(arg);
 
-    return (1);
-}
+            if (c == '}' || c == '{')
+                throw (static_cast<int>(utl::err_BadDirectiveSimple));
 
-// @brief:  parses ifstream until the char ';' which determines
-//              the end of a simple directive section
-//
-// @PARAM:  ifstream - config file stream; c - holds next char;
-//              token - token to be saved
-//
-// @return: vector<std::string> that holds the arguments that
-//              succeed the directive name
-//
-// @details:    1 - While the char ';' is not found
-//              2 -     Parse next token
-//              3 -     Add token to a tokens vector
-//              4 - Return the tokens vector
-static
-utl::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
-{
-    std::string     arg;
-    utl::sVector  args(0);
-
-    while (1)
-    {
-        if (c == '#' || c == '\n' || c == '}' || c == '{')
-            throw (static_cast<int>(utl::err_BadDirectiveSimple));
-
-        if (stt_consumeSpaces(ifs, c) == EOF)
-            throw (static_cast<int>(utl::err_BadDirectiveSimple));
-
-        if (c == '#' || c == '\n' || c == ';' || c == '}'
-                || c == '{')
-            throw (static_cast<int>(utl::err_BadDirectiveSimple));
-
-        if (stt_parseToken(ifs, c, arg) == EOF)
-            throw (static_cast<int>(utl::err_BadDirectiveSimple));
-
-        args.push_back(arg);
-
-        if (c == '}' || c == '{')
-            throw (static_cast<int>(utl::err_BadDirectiveSimple));
-
-        if (c == ';')
-        {
-            stt_get(ifs, c);
-            return (args);
+            if (c == ';')
+            {
+                stt_get(ifs, c);
+                return (args);
+            }
         }
     }
-}
 
-// @brief:      parses ifstream until the char '}' which determines
-//                  the end of a Block Directive section. It provides
-//                  the parsing of nested Block Directives
-//
-// @PARAM:      ifstream - config file stream; c - holds next char;
-//                  token - token to be saved
-//
-// @return:     cfg::s_dBlock that holds the parsed Directive Block.
-//
-// @details:    1 - While the char '}' is not found
-//              2 -     Parse next token
-//              3 -     If token is Block Directive
-//              4 -         Set token as Block Directive name
-//              5 -         Parse Block Directive and save it in the current block
-//              6 -         directive structure
-//              7 -     Else If token is Simple Directive
-//              8 -         Set token as Simple Directive name
-//              9 -         Parse Simple Directive and save it in the current block
-//              a -         directive structure
-//              b -     Else
-//              c -         Throw an error
-//              d - Return the Block Directive
-static
-cfg::s_dBlock    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
-                                        char &c)
-{
-    cfg::s_dBlock   blockDirective;
-
-    if (c != '{')
-        throw (static_cast<int>(utl::err_BadDirectiveBlock));
-
-    if (!ifs.get(c))
-        throw (static_cast<int>(utl::err_BadDirectiveBlock));
-
-   blockDirective.name = _name;
-
-    std::string     name;
-
-    while (c != '}')
+    // @brief:      parses ifstream until the char '}' which determines
+    //                  the end of a Block Directive section. It provides
+    //                  the parsing of nested Block Directives
+    //
+    // @PARAM:      ifstream - config file stream; c - holds next char;
+    //                  token - token to be saved
+    //
+    // @return:     s_dBlock that holds the parsed Directive Block.
+    //
+    // @details:    1 - While the char '}' is not found
+    //              2 -     Parse next token
+    //              3 -     If token is Block Directive
+    //              4 -         Set token as Block Directive name
+    //              5 -         Parse Block Directive and save it in the current block
+    //              6 -         directive structure
+    //              7 -     Else If token is Simple Directive
+    //              8 -         Set token as Simple Directive name
+    //              9 -         Parse Simple Directive and save it in the current block
+    //              a -         directive structure
+    //              b -     Else
+    //              c -         Throw an error
+    //              d - Return the Block Directive
+    static s_dBlock    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
+            char &c)
     {
-        if (stt_consumeNonToken(ifs, c) == EOF)
+        s_dBlock   blockDirective;
+
+        if (c != '{')
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-        if (c == '}')
-        {
-            stt_get(ifs, c);
-            break ;
-        }
-
-        if (c == ';' || c == '{')
+        if (!ifs.get(c))
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-        if (stt_parseToken(ifs, c, name) == EOF)
-            throw (static_cast<int>(utl::err_BadDirectiveBlock));
+        blockDirective.name = _name;
 
-        cfg::map_dTable::iterator      it;
+        std::string     name;
 
-        if ((it = directiveTable.find(name)) == directiveTable.end())
-            throw (static_cast<int>(utl::err_BadDirectiveBlock));
-
-        if (it->second & cfg::e_dir_block)
+        while (c != '}')
         {
             if (stt_consumeNonToken(ifs, c) == EOF)
                 throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-            if (name == "location")
+            if (c == '}')
             {
-                if (stt_parseToken(ifs, c, name) == EOF)
-                    throw (static_cast<int>(utl::err_BadDirectiveBlock));
-
-                if (stt_consumeNonToken(ifs, c) == EOF)
-                    throw (static_cast<int>(utl::err_BadDirectiveBlock));
+                stt_get(ifs, c);
+                break ;
             }
 
-            cfg::s_dBlock   tmp = stt_parseDirectiveBlock(name, ifs, c);
+            if (c == ';' || c == '{')
+                throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-            blockDirective.dBlock.insert(std::make_pair(it->second, tmp));
-        }
-        else if(it->second & cfg::e_dir_simple)
-        {
-            utl::sVector    tmp = stt_parseDirectiveSimple(ifs, c);
+            if (stt_parseToken(ifs, c, name) == EOF)
+                throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-            blockDirective.dSimple.insert(std::make_pair(it->second, tmp));
+            map_dTable::iterator      it;
+
+            if ((it = directiveTable.find(name)) == directiveTable.end())
+                throw (static_cast<int>(utl::err_BadDirectiveBlock));
+
+            if (it->second & e_dir_block)
+            {
+                if (stt_consumeNonToken(ifs, c) == EOF)
+                    throw (static_cast<int>(utl::err_BadDirectiveBlock));
+
+                if (name == "location")
+                {
+                    if (stt_parseToken(ifs, c, name) == EOF)
+                        throw (static_cast<int>(utl::err_BadDirectiveBlock));
+
+                    if (stt_consumeNonToken(ifs, c) == EOF)
+                        throw (static_cast<int>(utl::err_BadDirectiveBlock));
+                }
+
+                s_dBlock   tmp = stt_parseDirectiveBlock(name, ifs, c);
+
+                blockDirective.dBlock.insert(std::make_pair(it->second, tmp));
+            }
+            else if(it->second & e_dir_simple)
+            {
+                utl::sVector    tmp = stt_parseDirectiveSimple(ifs, c);
+
+                blockDirective.dSimple.insert(std::make_pair(it->second, tmp));
+            }
+            else
+                throw (static_cast<int>(utl::err_BadDirectiveBlock));
         }
-        else
-            throw (static_cast<int>(utl::err_BadDirectiveBlock));
+
+        stt_get(ifs, c);
+
+        return  (blockDirective);
     }
 
-    stt_get(ifs, c);
-
-    return  (blockDirective);
-}
-
-// @brief:      parses multiple server Block Directives and saves it
-//                  int a vector
-//
-// @PARAM:      ifstream - config file stream; c - holds next char;
-//
-// @return:     vector<cfg::s_dBlock>, an array of multiple s_dBlocks that
-//                  holds the server blocks which will provide the server
-//                  class the necessary information for its instantiations
-//
-// @details:    1 - While theres characters in ifstream
-//              2 -     get next token
-//              3 -     If next token is "server"
-//              4 -         parse server as a Block Directive
-//              5 -     Else
-//              6 -         throw an error
-//              7 - Return Block Directives vector
-static
-cfg::s_dBlock stt_parseConfig(std::ifstream &ifs, char &c)
-{
-    std::string     arg;
-    cfg::s_dBlock    config;
-
-    if (!ifs.get(c))
-        throw (static_cast<int>(utl::err_BadConfig));
-
-    if (stt_consumeNonToken(ifs, c) == EOF)
-        throw (static_cast<int>(utl::err_BadConfig));
-
-    if (stt_parseToken(ifs, c, arg) == EOF)
-        throw (static_cast<int>(utl::err_BadConfig));
-
-    if (arg != "http")
-        throw (static_cast<int>(utl::err_BadConfig));
-
-    if (stt_consumeNonToken(ifs, c) == EOF)
-        return (config);
-
-    config = stt_parseDirectiveBlock(arg, ifs, c);
-
-    while (1)
+    // @brief:      parses multiple server Block Directives and saves it
+    //                  int a vector
+    //
+    // @PARAM:      ifstream - config file stream; c - holds next char;
+    //
+    // @return:     vector<s_dBlock>, an array of multiple s_dBlocks that
+    //                  holds the server blocks which will provide the server
+    //                  class the necessary information for its instantiations
+    //
+    // @details:    1 - While theres characters in ifstream
+    //              2 -     get next token
+    //              3 -     If next token is "server"
+    //              4 -         parse server as a Block Directive
+    //              5 -     Else
+    //              6 -         throw an error
+    //              7 - Return Block Directives vector
+    static s_dBlock stt_parseConfigSyntax(std::ifstream &ifs)
     {
+        char            c;
+        std::string     arg;
+        s_dBlock   config;
+
         if (!ifs.get(c))
-            return (config);
-
-        if (stt_consumeComments(ifs, c) == EOF)
-            return (config);
-        else if (stt_consumeNewLines(ifs, c) == EOF)
-            return (config);
-        else
             throw (static_cast<int>(utl::err_BadConfig));
+
+        if (stt_consumeNonToken(ifs, c) == EOF)
+            throw (static_cast<int>(utl::err_BadConfig));
+
+        if (stt_parseToken(ifs, c, arg) == EOF)
+            throw (static_cast<int>(utl::err_BadConfig));
+
+        if (arg != "http")
+            throw (static_cast<int>(utl::err_BadConfig));
+
+        if (stt_consumeNonToken(ifs, c) == EOF)
+            return (config);
+
+        config = stt_parseDirectiveBlock(arg, ifs, c);
+
+        while (1)
+        {
+            if (!ifs.get(c))
+                return (config);
+
+            if (stt_consumeComments(ifs, c) == EOF)
+                return (config);
+            else if (stt_consumeNewLines(ifs, c) == EOF)
+                return (config);
+            else
+                throw (static_cast<int>(utl::err_BadConfig));
+        }
+
     }
 
-}
-
-// @brief:  opens the configuration file and calls it's parser function
-//
-// @PARAM:  filename - webserver configuration file path
-//
-// @return: vector<cfg::s_dBlock>, an array of multiple s_dBlocks that
-//              holds the server blocks which will provide the server
-//              class the necessary information for its instantiations
-cfg::s_dBlock  cfg::fetch_config(char *filename)
-{
-    configuration_file_init();
-
-    std::ifstream   ifs(filename);
-    if (!ifs)
+    static int stt_portGet(const utl::sVector &listenBlock)
     {
-        std::cerr << "ERROR: Cannot open config file: "
-            << filename << std::endl;
-        throw (static_cast<int>(utl::err_FileOpening));
+        if (listenBlock.size() != 1)
+            throw(static_cast<int>(utl::err_BadPort));
+
+        std::string     digits;
+
+        errno = 0;
+        char    *end = NULL;
+        long    portNo = strtol(listenBlock[0].c_str(), &end, 10);
+
+        if (errno == ERANGE)
+        {
+            return (-1);
+        }
+        if (end == digits.c_str() || *end != '\0')
+        {
+            throw (static_cast<int>(utl::err_BadPortRange));
+        }
+        if (portNo < 1025 || portNo > 65535)
+        {
+            throw (static_cast<int>(utl::err_BadPortRange));
+        }
+
+        return (static_cast<int>(portNo));
     }
 
-    std::string     digits;
-    char            c;
+    // TODO:
+    //      1- Verify ipVector validity
+    //      2- Maybe use already the ip converter function already
+    static std::string stt_ipGet(const utl::sVector &hostBlock)
+    {
+        if (hostBlock.size() != 1)
+            throw(static_cast<int>(utl::err_BadIp));
 
-    return (stt_parseConfig(ifs, c));
+        return (hostBlock[0]);
+    }
+
+    // TODO:
+    //      1- Parse numbers then one letter
+    //      2- Parse only the letters k, m, g and only one letter
+    //      3- Multiple number by letter multiplier representation
+    //      4- Make an enum
+    static long    stt_clientMaxBodySizeGet(
+            const utl::sVector &clientMaxBodySizeVector)
+    {
+        if (clientMaxBodySizeVector.size() != 1)
+            throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+        errno = 0;
+        char        *ptr = NULL;
+        const char  *clientMaxBodySizeStr = clientMaxBodySizeVector[0].c_str();
+        size_t      clientMaxBodySizeStrLen = strlen(clientMaxBodySizeStr);
+        size_t      size = std::strtol(clientMaxBodySizeStr, &ptr, 10);
+
+        if (errno == ERANGE)
+            throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+        if  (*clientMaxBodySizeStr == '-')
+            throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+        if (ptr == clientMaxBodySizeStr)
+            throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+        if (strlen(ptr) > 1)
+            throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+
+        switch (std::toupper(*(ptr++)))
+        {
+            case 'K':
+                if (clientMaxBodySizeStrLen > 14)
+                    throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+                size *= 1024;
+                break ;
+            case 'M':
+                if (clientMaxBodySizeStrLen > 10)
+                    throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+                size *= 1024 * 1024;
+                break ;
+            case 'G':
+                if (clientMaxBodySizeStrLen > 6)
+                    throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+                size *= 1024UL * 1024 * 1024;
+                break ;
+            case '\0':
+                if (clientMaxBodySizeStrLen > 18)
+                    throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+                break ;
+            default:
+                throw(static_cast<int>(utl::err_BadClientMaxBodySize));
+        }
+
+        return (size);
+    }
+
+    // TODO:
+    //      1- Iterate error pages files in the directory
+    //      2- Check if all mandatory exist(by name)
+    //      3- Check if all are html
+    //      4- Check if the html is runnable(???????)
+    //      5- Save the page on map_response
+    static utl::lsMap stt_errorPagesGet(const utl::sVector &errorPagesBlock)
+    {
+        if (errorPagesBlock.size() != 1)
+            throw(static_cast<int>(utl::err_BadErrorPages));
+
+        DIR *errorPagesDir = opendir(errorPagesBlock[0].c_str());
+
+        if (!errorPagesDir)
+            throw(static_cast<int>(utl::err_BadErrorPagesDir));
+
+        struct dirent   *entry;
+        size_t          errorPagesCount = 0;
+        utl::lsMap      errorPagesResponses;
+
+        while ((entry = readdir(errorPagesDir)) != NULL)
+        {
+            std::string file = entry->d_name;
+
+            if (file == "." || file == "..")
+                continue ;
+
+            if (!std::isdigit(file[0]))
+                continue ;
+
+            char    *ptr = NULL;
+            long    errorCode = std::strtol(file.c_str(), &ptr, 10);
+
+            if (ptr == file)
+                continue ;
+
+            if (std::strcmp(ptr, ".html") != 0)
+                continue ;
+
+            if ((errorCode >= 400 && errorCode <= 418)
+                    || (errorCode >= 421 && errorCode <= 426)
+                    || (errorCode == 428) || (errorCode == 429)
+                    || (errorCode == 431) || (errorCode == 451)
+                    || (errorCode >= 500 && errorCode <= 508)
+                    || (errorCode == 510) || (errorCode == 511))
+            {
+                //TODO: BUILD THE RESPONSE HERE
+                //
+                //errorPagesResponses.insert(std::make_pair(
+                //          errorCode, responseBuild()));
+                errorPagesCount++;
+            }
+        }
+
+        if (errorPagesCount != ERROR_PAGES_SIZE)
+            throw (static_cast<int>(utl::err_BadErrorPagesAmount));
+
+        closedir(errorPagesDir);
+
+        return (errorPagesResponses);
+    }
+
+    static s_config   stt_parseConfigSemantics(const s_dBlock &httpBlock)
+    {
+        // Simple Directives
+        s_config                   config;
+        mmap_dSimple               dSimple = httpBlock.dSimple;
+        mmap_dSimple::iterator     itSimple;
+        mmap_dSimple::iterator     dSimpleEnd = dSimple.end();
+
+        if (dSimple.size() != 4)
+            throw(static_cast<int>(utl::err_BadDirectiveSimple));
+
+        if ((itSimple = dSimple.lower_bound(e_listen)) == dSimpleEnd)
+            throw(static_cast<int>(utl::err_MissingPort));
+        config.port = stt_portGet(itSimple->second);
+
+        if ((itSimple = dSimple.lower_bound(e_host)) == dSimpleEnd)
+            throw(static_cast<int>(utl::err_MissingIp));
+        config.ip = stt_ipGet(itSimple->second);
+
+        if ((itSimple = dSimple.lower_bound(e_client_max_body_size)) == dSimpleEnd)
+            throw(static_cast<int>(utl::err_MissingClientMaxBodySize));
+        config.clientMaxBodySize = stt_clientMaxBodySizeGet(itSimple->second);
+
+        if ((itSimple = dSimple.lower_bound(e_error_pages)) == dSimpleEnd)
+            throw(static_cast<int>(utl::err_MissingErrorPages));
+        config.errorPages = stt_errorPagesGet(itSimple->second);
+
+        // Block Directives
+        /*map_drtBlock               dBlock = server.dBlock;
+          map_drtBlock::iterator     itBlock;
+          map_drtBlock::iterator     dBlockEnd = dBlock.end();
+
+          if ((itBlock = dBlock.find(e_location)) == dBlockEnd)
+          throw(static_cast<int>(utl::err_MissingLocation));
+          config.location = location = stt_locationGet(itBlock->second);*/
+
+        return (config);
+    }
+
+    // @brief:  opens the configuration file and calls it's parser function
+    //
+    // @PARAM:  filename - webserver configuration file path
+    //
+    // @return: vector<s_dBlock>, an array of multiple s_dBlocks that
+    //              holds the server blocks which will provide the server
+    //              class the necessary information for its instantiations
+    std::vector<s_config>  fetch_config(char *filename)
+    {
+        configuration_file_init();
+
+        std::ifstream   ifs(filename);
+        if (!ifs)
+        {
+            std::cerr << "ERROR: Cannot open config file: "
+                << filename << std::endl;
+            throw (static_cast<int>(utl::err_FileOpening));
+        }
+
+        std::string     digits;
+
+        s_dBlock                httpBlock = stt_parseConfigSyntax(ifs);
+        mmap_dBlock::iterator   it;
+        std::vector<s_config>   configs;
+
+        if ((it = httpBlock.dBlock.lower_bound(e_server)) == httpBlock.dBlock.end())
+            throw (static_cast<int>(utl::err_BadHttpBlock));
+
+        for ( ; it != httpBlock.dBlock.end(); it++)
+        {
+            configs.push_back(stt_parseConfigSemantics(it->second));
+        }
+       
+        return (configs);
+    }
 }
