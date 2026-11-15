@@ -13,11 +13,15 @@
 #ifndef MSG_OCF
 #define MSG_OCF
 #if MSG_LOG == 1
-#define CONSTRUCTOR_DEFAULT_MSG(object) object << " Default constructor called\n"
-#define CONSTRUCTOR_COPY_MSG(object) object << " Copy constructor called\n"
+#define CONSTRUCTOR_DEFAULT_MSG(object) object
+            << " Default constructor called\n"
+#define CONSTRUCTOR_COPY_MSG(object) object
+            << " Copy constructor called\n"
 #define DESTRUCTOR_MSG(object) object << " Destructor called\n"
-#define ASSIGNMENT_OPERATOR_COPY_MSG(object) object << " Copy assignment operator called\n"
-#define MEMBER_FUNCTION_MSG(function) function << " member function called\n"
+#define ASSIGNMENT_OPERATOR_COPY_MSG(object) object
+            << " Copy assignment operator called\n"
+#define MEMBER_FUNCTION_MSG(function) function
+            << " member function called\n"
 #else
 #define CONSTRUCTOR_DEFAULT_MSG(object) ""
 #define CONSTRUCTOR_COPY_MSG(object) ""
@@ -78,23 +82,23 @@ namespace cfg
     // @brief:  std::map based look up table that serves
     //              as a quick way to validate any directive
     //              found on the configuration file
-    typedef std::map<std::string, e_directive_type>  map_drtTable;
+    typedef std::map<std::string, e_directive_type>  map_dTable;
 
     // @brief:  Holds the Simple Directive data
-    typedef std::map<e_directive_type, std::vector<utl::sVector> > map_drtSimple;
+    typedef std::multimap<e_directive_type, utl::sVector> mmap_dSimple;
 
     // @brief:  Holds the Block Directive data which contains
     //              both Simple and Block Directives
-    typedef struct d_block
+    typedef struct s_dBlock
     {
-        std::string                                         name;
-        utl::sVector                                        args;
-        map_drtSimple                                       dSimple;
-        std::map<e_directive_type, std::vector<d_block> >   dBlock;
-    }   D_Block;
+        std::string                                 name;
+        utl::sVector                                args;
+        mmap_dSimple                                dSimple;
+        std::multimap<e_directive_type, s_dBlock>   dBlock;
+    }   s_dBlock;
 
-    //@brief: Holds the Block Directive data
-    typedef std::map<e_directive_type, d_block> map_drtBlock;
+    //@brief: Holds the Directive Block data
+    typedef std::multimap<e_directive_type, s_dBlock> mmap_dBlock;
 
     //--------------------------------------------------------------
     // FUNCTIONS    ------------------------------------------------
@@ -106,5 +110,5 @@ namespace cfg
     // @return: vector<cfg::D_Block>, an array of multiple D_Blocks that
     //              holds the server blocks which will provide the server
     //              class the necessary information for its instantiations
-    cfg::D_Block   fetch_config(char *filename);
+    cfg::s_dBlock   fetch_config(char *filename);
 }

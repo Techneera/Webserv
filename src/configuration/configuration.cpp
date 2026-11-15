@@ -1,4 +1,5 @@
 #include <cstring>
+
 #include <string>
 #include <unistd.h>
 #include <stdio.h>
@@ -12,7 +13,7 @@
 #include "configuration.hpp"
 
 // @brief:  Look Up table to find if the directive is a valid one
-static cfg::map_drtTable directiveTable;
+static cfg::map_dTable directiveTable;
 
 // @brief:  Populates the Look Up table as c++98 doesn't allow
 //                  Initialization of a map container
@@ -226,7 +227,7 @@ utl::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 // @PARAM:      ifstream - config file stream; c - holds next char;
 //                  token - token to be saved
 //
-// @return:     cfg::D_Block that holds the parsed Directive Block.
+// @return:     cfg::s_dBlock that holds the parsed Directive Block.
 //
 // @details:    1 - While the char '}' is not found
 //              2 -     Parse next token
@@ -242,10 +243,10 @@ utl::sVector stt_parseDirectiveSimple(std::ifstream &ifs, char &c)
 //              c -         Throw an error
 //              d - Return the Block Directive
 static
-cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
+cfg::s_dBlock    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
                                         char &c)
 {
-    cfg::D_Block    directiveBlock;
+    cfg::s_dBlock   blockDirective;
 
     if (c != '{')
         throw (static_cast<int>(utl::err_BadDirectiveBlock));
@@ -253,7 +254,7 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
     if (!ifs.get(c))
         throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-    directiveBlock.name = _name;
+   blockDirective.name = _name;
 
     std::string     name;
 
@@ -274,7 +275,7 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
         if (stt_parseToken(ifs, c, name) == EOF)
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
 
-        cfg::map_drtTable::iterator      it;
+        cfg::map_dTable::iterator      it;
 
         if ((it = directiveTable.find(name)) == directiveTable.end())
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
@@ -293,17 +294,15 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
                     throw (static_cast<int>(utl::err_BadDirectiveBlock));
             }
 
-            std::vector<cfg::D_Block>   &dBlockVector =
-                            directiveBlock.dBlock[it->second];
-            dBlockVector.push_back(stt_parseDirectiveBlock(name, ifs, c));
+            cfg::s_dBlock   tmp = stt_parseDirectiveBlock(name, ifs, c);
+
+            blockDirective.dBlock.insert(std::make_pair(it->second, tmp));
         }
         else if(it->second & cfg::e_dir_simple)
         {
-            std::vector<utl::sVector>   &sVectorVector =
-                            directiveBlock.dSimple[it->second];
-            sVectorVector.push_back(stt_parseDirectiveSimple(ifs, c));
-            directiveBlock.dSimple.insert(std::make_pair(
-                        it->second, sVectorVector));
+            utl::sVector    tmp = stt_parseDirectiveSimple(ifs, c);
+
+            blockDirective.dSimple.insert(std::make_pair(it->second, tmp));
         }
         else
             throw (static_cast<int>(utl::err_BadDirectiveBlock));
@@ -311,7 +310,7 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
 
     stt_get(ifs, c);
 
-    return  (directiveBlock);
+    return  (blockDirective);
 }
 
 // @brief:      parses multiple server Block Directives and saves it
@@ -319,7 +318,7 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
 //
 // @PARAM:      ifstream - config file stream; c - holds next char;
 //
-// @return:     vector<cfg::D_Block>, an array of multiple D_Blocks that
+// @return:     vector<cfg::s_dBlock>, an array of multiple s_dBlocks that
 //                  holds the server blocks which will provide the server
 //                  class the necessary information for its instantiations
 //
@@ -331,10 +330,10 @@ cfg::D_Block    stt_parseDirectiveBlock(std::string _name, std::ifstream &ifs,
 //              6 -         throw an error
 //              7 - Return Block Directives vector
 static
-cfg::D_Block stt_parseConfig(std::ifstream &ifs, char &c)
+cfg::s_dBlock stt_parseConfig(std::ifstream &ifs, char &c)
 {
     std::string     arg;
-    cfg::D_Block    config;
+    cfg::s_dBlock    config;
 
     if (!ifs.get(c))
         throw (static_cast<int>(utl::err_BadConfig));
@@ -372,10 +371,10 @@ cfg::D_Block stt_parseConfig(std::ifstream &ifs, char &c)
 //
 // @PARAM:  filename - webserver configuration file path
 //
-// @return: vector<cfg::D_Block>, an array of multiple D_Blocks that
+// @return: vector<cfg::s_dBlock>, an array of multiple s_dBlocks that
 //              holds the server blocks which will provide the server
 //              class the necessary information for its instantiations
-cfg::D_Block  cfg::fetch_config(char *filename)
+cfg::s_dBlock  cfg::fetch_config(char *filename)
 {
     configuration_file_init();
 
