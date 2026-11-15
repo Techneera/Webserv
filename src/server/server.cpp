@@ -252,13 +252,13 @@ Server::Server(const cfg::D_Block &serverDirectiveBlock)
     config.errorPages = stt_errorPagesGet(itSimple->second);
 
     // Block Directives
-    /*cfg::map_drtBlock               dBlock = server.dBlock;
+    cfg::map_drtBlock               dBlock = server.dBlock;
     cfg::map_drtBlock::iterator     itBlock;
     cfg::map_drtBlock::iterator     dBlockEnd = dBlock.end();
 
     if ((itBlock = dBlock.find(cfg::e_location)) == dBlockEnd)
         throw(static_cast<int>(utl::err_MissingLocation));
-    config.location = location = stt_locationGet(itBlock->second);*/
+    config.location = location = stt_locationGet(itBlock->second);
 }
 
 
