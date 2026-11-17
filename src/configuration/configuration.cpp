@@ -8,6 +8,7 @@
 #include <cstring>
 #include <dirent.h>
 #include <string>
+#include <sstream>
 
 #include "utils.hpp"
 #include "configuration.hpp"
@@ -456,6 +457,18 @@ namespace   cfg
         return (size);
     }
 
+    // @brief: Cache the error page response
+    static int  stt_errorPageResponseBuild(const std::string &errorPagePath,
+                                           std::string &errorPageResponse)
+    {
+        std::string html;
+
+        if (utl::fileToString(errorPagePath, html) == -1)
+            return (-1);
+
+        return (0);
+    }
+
     // TODO:
     //      1- Iterate error pages files in the directory
     //      2- Check if all mandatory exist(by name)
@@ -502,10 +515,13 @@ namespace   cfg
                     || (errorCode >= 500 && errorCode <= 508)
                     || (errorCode == 510) || (errorCode == 511))
             {
-                //TODO: BUILD THE RESPONSE HERE
-                //
-                //errorPagesResponses.insert(std::make_pair(
-                //          errorCode, responseBuild()));
+                // CONTINUE HERE
+                std::string errorPagePath = errorPagesBlock[0] + file;
+                std::string errorPageResponse;
+
+                if (stt_errorPageResponseBuild(errorPagePath, errorPageResponse) == -1)
+                        continue;
+
                 errorPagesCount++;
             }
         }

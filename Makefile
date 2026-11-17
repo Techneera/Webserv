@@ -60,7 +60,7 @@ fclean: clean
 re: fclean all
 
 debug: fclean
-debug: FLAGS= -g -Wall -Wextra $(INCLUDE_FLAGS)
+debug: FLAGS= -g -Wall -Wextra -std=c++98 $(INCLUDE_FLAGS)
 debug: all
 
 # In order to be able to test several different:
@@ -69,7 +69,7 @@ debug: all
 # 3 - run make test_<module_name>
 _%: fclean
 	@mkdir build
-	@$(MAKE) FLAGS="-g -Wall -Wextra $(INCLUDE_FLAGS)" \
+	@$(MAKE) FLAGS="-g -Wall -Wextra -std=c++98 $(INCLUDE_FLAGS)" \
 		MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=build/%)
 	rm -rf src/*.o
 

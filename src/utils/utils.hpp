@@ -38,4 +38,5 @@ namespace   utl
     typedef std::map<long, std::string>         lsMap;
 
     void    errorPrint(int &error);
+    int     fileToString(const std::string &filePath, std::string &str);
 };

@@ -45,8 +45,14 @@ namespace cfg
 
     // ---------------------------------------------------
     // TYPES ---------------------------------------------
-    //
-    // @brief:  
+
+    // @brief:  internal module errors
+    enum    e_configuration
+    {
+        e_wrongFilePath = -1,
+    };
+
+    // @brief:  region names, might be fun and useful as an ID
     enum    e_region
     {
         e_portugal = 8000,
