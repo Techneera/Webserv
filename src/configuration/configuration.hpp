@@ -47,6 +47,8 @@ namespace cfg
     //          index
     #define STATUS_CODE_LEN 13
     #define REASON_PHRASE_LEN 15
+    #define EXTRA_LINE_LEN 12
+    #define AUTHENTICATION_CHALLENGE
     #define BODY_LENGTH_LEN 13
     #define BODY_LEN 6
 

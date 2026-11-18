@@ -25,13 +25,16 @@ namespace   cfg
     // @brief: Predefined template for a more direct cache
     //          approach
     const std::string  errorPageResponseTemplate =
-                            "HTTP/1.1 <STATUS_CODE> <REASON_PHRASE>"
-                            "\r\nContent-Type: text/html\r\n"
+                            "HTTP/1.1 <STATUS_CODE> <REASON_PHRASE>\r\n"
+                            "<EXTRA_LINE>"
+                            "Content-Type: text/html\r\n"
                             "Content-Length: <BODY_LENGTH>\r\n"
                             "Connection: close\r\n\r\n<BODY>";
 
     // @brief: Look Up table for status code and respective reason phrase
     static utl::lsMap   reasonPhraseTable;
+
+    static utl::lsMap   extraLineTable;
 
     // @brief:  Populates the Look Up table as c++98 doesn't allow
     //                  Initialization of a map container
@@ -61,6 +64,7 @@ namespace   cfg
         reasonPhraseTable[404] = "Not Found";
         reasonPhraseTable[405] = "Method Not Allowed";
         reasonPhraseTable[406] = "Not Acceptable";
+        reasonPhraseTable[407] = "Proxy Authentication Required";
         reasonPhraseTable[408] = "Request Timeout";
         reasonPhraseTable[409] = "Conflict";
         reasonPhraseTable[410] = "Gone";
@@ -93,6 +97,16 @@ namespace   cfg
         reasonPhraseTable[508] = "Loop Detected";
         reasonPhraseTable[510] = "Not Extended";
         reasonPhraseTable[511] = "Network Authentication Required";
+
+        extraLineTable[401] = "WWW-Authenticate: "
+                              "<RESPONSE_EXTRA_LINE_ARGUMENT>\r\n";
+        extraLineTable[405] = "Allow: <RESPONSE_EXTRA_LINE_ARGUMENT>\r\n";
+        extraLineTable[407] = "WWW-Authenticate: "
+                              "<RESPONSE_EXTRA_LINE_ARGUMENT>\r\n";
+        extraLineTable[416] = "Content-Range: "
+                              "<RESPONSE_EXTRA_LINE_ARGUMENT>\r\n";
+        extraLineTable[426] = "Upgrade: <RESPONSE_EXTRA_LINE_ARGUMENT>\r\n";
+        extraLineTable[429] = "Retry-After: <RESPONSE_EXTRA_LINE_ARGUMENT>\r\n";
     }
 
     // @brief:  Provides a small ease of use modification of
@@ -517,18 +531,23 @@ namespace   cfg
                                            const std::string &errorPagePath,
                                            const size_t code)
     {
-        std::ostringstream  statusCode;
-        std::string         reasonPhrase;
-        std::ostringstream  bodyLength;
-        std::string         body;
-
-        if (utl::fileToString(errorPagePath, body) == -1)
-            return (-1);
+        std::ostringstream      statusCode;
+        std::string             reasonPhrase;
+        utl::lsMap::iterator    it;
+        std::string             extraLine;
+        std::ostringstream      bodyLength;
+        std::string             body;
 
         errorPageResponse = errorPageResponseTemplate;
         statusCode << static_cast<int>(code);
-        bodyLength << static_cast<int>(body.size());
         reasonPhrase = reasonPhraseTable[static_cast<long>(code)];
+        if ((it = extraLineTable.find(static_cast<int>(code)))
+                != extraLineTable.end())
+            extraLine = it->second;
+        if (utl::fileToString(errorPagePath, body) == -1)
+            return (-1);
+        bodyLength << static_cast<int>(body.size());
+
 
         errorPageResponse.replace(errorPageResponse.find("<STATUS_CODE>"),
                          STATUS_CODE_LEN,
@@ -536,6 +555,9 @@ namespace   cfg
         errorPageResponse.replace(errorPageResponse.find("<REASON_PHRASE>"),
                          REASON_PHRASE_LEN,
                          reasonPhrase);
+        errorPageResponse.replace(errorPageResponse.find("<EXTRA_LINE>"),
+                         EXTRA_LINE_LEN,
+                         extraLine);
         errorPageResponse.replace(errorPageResponse.find("<BODY_LENGTH>"),
                          BODY_LENGTH_LEN,
                          bodyLength.str());
@@ -596,11 +618,11 @@ namespace   cfg
                 std::string errorPageResponse;
 
                 if (stt_errorPageResponseBuild(errorPageResponse,
-                                               errorPagePath,
-                                               errorCode) == -1)
+                            errorPagePath, errorCode) == -1)
                 {
-                        continue;
+                    continue;
                 }
+
                 // CONTINUE HERE
                 std::cout << errorPageResponse;
 
