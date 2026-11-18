@@ -19,6 +19,20 @@ namespace   cfg
     // @brief:  Look Up table to find if the directive is a valid one
     static map_dTable directiveTable;
 
+    // TODO:
+    //      1- Build the Generic Error response
+    //      2- Build the other possibilities from there, if possible
+    // @brief: Predefined template for a more direct cache
+    //          approach
+    const std::string  errorPageResponseTemplate =
+                            "HTTP/1.1 <STATUS_CODE> <REASON_PHRASE>"
+                            "\r\nContent-Type: text/html\r\n"
+                            "Content-Length: <BODY_LENGTH>\r\n"
+                            "Connection: close\r\n\r\n<BODY>";
+
+    // @brief: Look Up table for status code and respective reason phrase
+    static utl::lsMap   reasonPhraseTable;
+
     // @brief:  Populates the Look Up table as c++98 doesn't allow
     //                  Initialization of a map container
     //
@@ -38,6 +52,47 @@ namespace   cfg
         directiveTable["server"] = e_server;
         directiveTable["location"] = e_location;
         directiveTable["cgi"] = e_cgi;
+
+
+        reasonPhraseTable[400] = "Bad Request";
+        reasonPhraseTable[401] = "Unauthorized";
+        reasonPhraseTable[402] = "Payment Required";
+        reasonPhraseTable[403] = "Forbidden";
+        reasonPhraseTable[404] = "Not Found";
+        reasonPhraseTable[405] = "Method Not Allowed";
+        reasonPhraseTable[406] = "Not Acceptable";
+        reasonPhraseTable[408] = "Request Timeout";
+        reasonPhraseTable[409] = "Conflict";
+        reasonPhraseTable[410] = "Gone";
+        reasonPhraseTable[411] = "Length Required";
+        reasonPhraseTable[412] = "Precondition Failed";
+        reasonPhraseTable[413] = "Content Too Large";
+        reasonPhraseTable[414] = "URI Too Long";
+        reasonPhraseTable[415] = "Unsupported Media Type";
+        reasonPhraseTable[416] = "Range Not Satisfiable";
+        reasonPhraseTable[417] = "Expectation Failed";
+        reasonPhraseTable[418] = "(Unused)";
+        reasonPhraseTable[419] = "Unassigned"; // Non official
+        reasonPhraseTable[421] = "Misdirected Request";
+        reasonPhraseTable[422] = "Unprocessable Content";
+        reasonPhraseTable[423] = "Locked";
+        reasonPhraseTable[424] = "Failed Dependency";
+        reasonPhraseTable[425] = "Too Early";
+        reasonPhraseTable[426] = "Upgrade Required";
+        reasonPhraseTable[428] = "Precondition Required";
+        reasonPhraseTable[429] = "Too Many Requests";
+        reasonPhraseTable[431] = "Request Header Fields Too Large";
+        reasonPhraseTable[451] = "Unavailable For Legal Reasons";
+        reasonPhraseTable[500] = "Internal Server Error";
+        reasonPhraseTable[501] = "Not Implemented";
+        reasonPhraseTable[502] = "Bad Gateway";
+        reasonPhraseTable[504] = "Gateway Timeout";
+        reasonPhraseTable[505] = "HTTP Version Not Supported";
+        reasonPhraseTable[506] = "Variant Also Negotiates";
+        reasonPhraseTable[507] = "Insufficient Storage";
+        reasonPhraseTable[508] = "Loop Detected";
+        reasonPhraseTable[510] = "Not Extended";
+        reasonPhraseTable[511] = "Network Authentication Required";
     }
 
     // @brief:  Provides a small ease of use modification of
@@ -458,13 +513,35 @@ namespace   cfg
     }
 
     // @brief: Cache the error page response
-    static int  stt_errorPageResponseBuild(const std::string &errorPagePath,
-                                           std::string &errorPageResponse)
+    static int  stt_errorPageResponseBuild(std::string &errorPageResponse,
+                                           const std::string &errorPagePath,
+                                           const size_t code)
     {
-        std::string html;
+        std::ostringstream  statusCode;
+        std::string         reasonPhrase;
+        std::ostringstream  bodyLength;
+        std::string         body;
 
-        if (utl::fileToString(errorPagePath, html) == -1)
+        if (utl::fileToString(errorPagePath, body) == -1)
             return (-1);
+
+        errorPageResponse = errorPageResponseTemplate;
+        statusCode << static_cast<int>(code);
+        bodyLength << static_cast<int>(body.size());
+        reasonPhrase = reasonPhraseTable[static_cast<long>(code)];
+
+        errorPageResponse.replace(errorPageResponse.find("<STATUS_CODE>"),
+                         STATUS_CODE_LEN,
+                         statusCode.str());
+        errorPageResponse.replace(errorPageResponse.find("<REASON_PHRASE>"),
+                         REASON_PHRASE_LEN,
+                         reasonPhrase);
+        errorPageResponse.replace(errorPageResponse.find("<BODY_LENGTH>"),
+                         BODY_LENGTH_LEN,
+                         bodyLength.str());
+        errorPageResponse.replace(errorPageResponse.find("<BODY>"),
+                         BODY_LEN,
+                         body);
 
         return (0);
     }
@@ -515,12 +592,17 @@ namespace   cfg
                     || (errorCode >= 500 && errorCode <= 508)
                     || (errorCode == 510) || (errorCode == 511))
             {
-                // CONTINUE HERE
                 std::string errorPagePath = errorPagesBlock[0] + file;
                 std::string errorPageResponse;
 
-                if (stt_errorPageResponseBuild(errorPagePath, errorPageResponse) == -1)
+                if (stt_errorPageResponseBuild(errorPageResponse,
+                                               errorPagePath,
+                                               errorCode) == -1)
+                {
                         continue;
+                }
+                // CONTINUE HERE
+                std::cout << errorPageResponse;
 
                 errorPagesCount++;
             }

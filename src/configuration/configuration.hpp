@@ -43,9 +43,15 @@ namespace cfg
     // @brief:  expected number of error code pages 
     #define ERROR_PAGES_SIZE 40
 
+    // @brief: error pages response template placeholders
+    //          index
+    #define STATUS_CODE_LEN 13
+    #define REASON_PHRASE_LEN 15
+    #define BODY_LENGTH_LEN 13
+    #define BODY_LEN 6
+
     // ---------------------------------------------------
     // TYPES ---------------------------------------------
-
     // @brief:  internal module errors
     enum    e_configuration
     {
