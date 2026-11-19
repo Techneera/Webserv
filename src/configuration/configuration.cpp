@@ -619,13 +619,9 @@ namespace   cfg
 
                 if (stt_errorPageResponseBuild(errorPageResponse,
                             errorPagePath, errorCode) == -1)
-                {
                     continue;
-                }
-
-                // CONTINUE HERE
-                std::cout << errorPageResponse;
-
+                errorPagesResponses.insert(
+                        std::make_pair(errorCode, errorPageResponse));
                 errorPagesCount++;
             }
         }
@@ -665,15 +661,6 @@ namespace   cfg
             throw(static_cast<int>(utl::err_MissingErrorPages));
         config.errorPages = stt_errorPagesGet(itSimple->second);
 
-        // Block Directives
-        /*map_drtBlock               dBlock = server.dBlock;
-          map_drtBlock::iterator     itBlock;
-          map_drtBlock::iterator     dBlockEnd = dBlock.end();
-
-          if ((itBlock = dBlock.find(e_location)) == dBlockEnd)
-          throw(static_cast<int>(utl::err_MissingLocation));
-          config.location = location = stt_locationGet(itBlock->second);*/
-
         return (config);
     }
 
@@ -696,19 +683,16 @@ namespace   cfg
             throw (static_cast<int>(utl::err_FileOpening));
         }
 
-        std::string     digits;
-
-        s_dBlock                httpBlock = stt_parseConfigSyntax(ifs);
         mmap_dBlock::iterator   it;
         std::vector<s_config>   configs;
+        std::string             digits;
+        s_dBlock                httpBlock = stt_parseConfigSyntax(ifs);
 
         if ((it = httpBlock.dBlock.lower_bound(e_server)) == httpBlock.dBlock.end())
             throw (static_cast<int>(utl::err_BadHttpBlock));
 
         for ( ; it != httpBlock.dBlock.end(); it++)
-        {
             configs.push_back(stt_parseConfigSemantics(it->second));
-        }
        
         return (configs);
     }
