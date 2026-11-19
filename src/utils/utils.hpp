@@ -32,10 +32,17 @@ namespace   utl
         err_MissingClientMaxBodySize,
         err_MissingLocation,
     };
+
+    // @brief:      typedefs that can probably be used in several
+    //              different modules
+    //
+    // @details:    i - int; l - long; s - std::string; b - bool;
+    //              E.g.: lbMap = std::map<enum, boolean>
     typedef std::vector<std::string>            sVector;
     typedef sVector::iterator                   sVecIt;
     typedef std::map<std::string, std::string>  ssMap;
     typedef std::map<long, std::string>         lsMap;
+    typedef std::map<int, bool>                 ibMap;
 
     void    errorPrint(int &error);
     int     fileToString(const std::string &filePath, std::string &str);

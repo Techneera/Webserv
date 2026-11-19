@@ -7,7 +7,6 @@
 
 #include "utils.hpp"
 
-
 #define CONFIG "Config"
 
 #ifndef MSG_OCF
@@ -86,12 +85,17 @@ namespace cfg
         e_error_pages = e_dir_simple | 1 << 6,
         e_root = e_dir_simple | 1 << 7,
         e_rust = e_dir_simple | 1 << 8,
+        e_methods = e_dir_simple | 1 << 9,
+        e_return = e_dir_simple | 1 << 10,
+        e_autoindex = e_dir_simple | 1 << 11,
+        e_index = e_dir_simple | 1 << 12,
+        e_upload_path = e_dir_simple | 1 << 13,
 
         // Block directive subtypes
-        e_http = e_dir_block | 1 << 9,
-        e_location = e_dir_block | 1 << 11,
-        e_cgi = e_dir_block | 1 << 12,
-        e_server = e_dir_block | 1 << 15,
+        e_http = e_dir_block | 1 << 16,
+        e_server = e_dir_block | 1 << 17,
+        e_location = e_dir_block | 1 << 18,
+        e_cgi = e_dir_block | 1 << 19,
     };
 
     // @brief:  std::map based look up table that serves
@@ -112,8 +116,29 @@ namespace cfg
         std::multimap<e_directive_type, s_dBlock>   dBlock;
     }   s_dBlock;
 
-    //@brief: Holds the Directive Block data
+    // @brief: Holds the Directive Block data
     typedef std::multimap<e_directive_type, s_dBlock> mmap_dBlock;
+
+    // TODO:
+    //      1- To define what type each block is. For now they are
+    //          placeholders, maybe they are definitive, who knows, me? no, you?
+    //          naaaaaah!
+    //
+    // @brief:  Representing the location block, holds multiple directives
+    typedef struct s_location
+    {
+        utl::ibMap  methods; // can be half assigned already, then off or on
+        bool        autoIndex;
+        std::string index; // maybe the actual cached response already?
+        std::string uploadPath;
+    }   s_location;
+
+    // TODO:
+    //      1- To verify if the map should be exactly like this
+    //
+    // @brief: Holds a hashtable for the several location blocks within
+    //          a server block
+    typedef std::multimap<long, s_location> mmap_location;
 
     // @brief:  configuration struct that holds, semantically
     //              parsed, the information of a single server
@@ -123,8 +148,7 @@ namespace cfg
         std::string     ip; // ip address string
         size_t          clientMaxBodySize; // request max size
         utl::lsMap      errorPages; // directory of error pages
-        utl::lsMap      location; // to find the directory of a
-                                  // certain page content
+        mmap_location   location; // to find the correct location
     }   s_config;
 
     //--------------------------------------------------------------

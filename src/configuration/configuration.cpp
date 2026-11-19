@@ -50,6 +50,11 @@ namespace   cfg
         directiveTable["error_pages"] = e_error_pages;
         directiveTable["root"] = e_root;
         directiveTable[".rs"] = e_rust;
+        directiveTable["methods"] = e_methods;
+        directiveTable["return"] = e_return;
+        directiveTable["autoindex"] = e_autoindex;
+        directiveTable["index"] = e_index;
+        directiveTable["upload_path"] = e_upload_path;
 
         directiveTable["http"] = e_http;
         directiveTable["server"] = e_server;

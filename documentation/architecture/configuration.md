@@ -50,6 +50,18 @@
 
         - `error_pages` defines the serveral error pages root directory
 
+        - `methods` defines allowed requested methods inside location scope
+
+        - `return` defines HTTP redirection, containing status codes and destinations
+
+        - `autoindex`  defines if an directory listing html is to be generated in 
+                        case the one defined by index doesn't exist
+
+        - `index` defines the html to be requeted as a directory listing for when a
+                        directory is requested instead of a file
+
+        - `upload_path` defines the directory where resource uploads should be stored
+
 
     - Block
 
