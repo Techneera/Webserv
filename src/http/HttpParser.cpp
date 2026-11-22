@@ -3,6 +3,7 @@
 #include <sstream>
 #include <map>
 #include <cctype>
+#include <cstring>
 
 HttpParser::HttpParser(
 ) : request(new HttpRequest_t),
@@ -44,29 +45,53 @@ void HttpParser::parseRequestLine()
     if (found == std::string::npos)
         return ;
 
-    size_t i = 0;
-    while (isToken(this->buffer[i]))
-        ++i;
-    if (this->buffer[i++] != ' ')
+    if ((this->result = parseRequestMethod()) == STATE_ERROR_e)
+        return ;
+
+    if (this->buffer[this->end] != ' ')
     {
         this->result = STATE_ERROR_e;
         return ;
     }
 
-    if (this->buffer[i++] != '/')
+    this->start = ++this->end;
+
+    if ((this->result = parsePath()) == STATE_ERROR_e)
+        return ;
+
+    if (this->buffer[this->end] != ' ' && this->buffer[this->end] != '?')
     {
         this->result = STATE_ERROR_e;
         return ;
     }
 
-    while (isPchar(this->buffer, i))
-        ++i;
 
-    if (this->buffer[i++] != ' ')
+    if (this->buffer[this->end] == '?')
+    {
+        this->start = ++this->end;
+        parseQuery();
+    }
+
+    if (this->buffer[this->end] != ' ')
     {
         this->result = STATE_ERROR_e;
         return ;
     }
+
+    this->start = ++this->end;
+
+    if ((this->result = parseHttpVersion()) == STATE_ERROR_e)
+        return ;
+
+    if (this->buffer.size() >= 2 &&
+        this->buffer.compare(this->end, 2, "\r\n") != 0)
+    {
+        this->result = STATE_ERROR_e;
+        return ;
+    }
+
+    this->buffer.erase(0, found + 2);
+    this->result = STATE_DONE_e;
 };
 
 void HttpParser::parseQueryParam(std::string params)
