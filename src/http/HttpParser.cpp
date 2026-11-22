@@ -7,7 +7,9 @@
 HttpParser::HttpParser(
 ) : request(new HttpRequest_t),
     result(STATE_INCOMPLETE_e),
-    stage(STATE_REQUEST_LINE_e) {}
+    stage(STATE_REQUEST_LINE_e),
+    start(0),
+    end(0) {}
 
 HttpParser::~HttpParser()
 {
@@ -144,4 +146,70 @@ bool HttpParser::isPctEncoded(const std::string& str, size_t pos)
        std::isxdigit(static_cast<unsigned char>(str[pos + 1])) &&
        std::isxdigit(static_cast<unsigned char>(str[pos + 2]))
    );
+}
+
+ParsingResult_e HttpParser::parseRequestMethod()
+{
+    std::string method;
+    while (isToken(this->buffer[this->end]))
+        this->end++;
+
+    method = buffer.substr(0, this->end);
+    if (method != "GET" &&
+        method != "POST" &&
+        method != "DELETE")
+        return STATE_ERROR_e;
+    this->start = end;
+    this->request->requestLine.method = method;
+    return STATE_INCOMPLETE_e;
+}
+
+ParsingResult_e HttpParser::parseHttpVersion()
+{
+    if (this->buffer.compare(this->start, 4, "HTTP") != 0)
+        return STATE_ERROR_e;
+    this->end += 4;
+    if (!std::isdigit(this->buffer[++this->end]))
+        return STATE_ERROR_e;
+    if (this->buffer[++this->end] != '.')
+        return STATE_ERROR_e;
+    if (!std::isdigit(this->buffer[++this->end]))
+        return STATE_ERROR_e;
+    this->request->requestLine.version = this->buffer.substr(this->start, ++this->end - this->start);
+    return STATE_INCOMPLETE_e;
+}
+
+ParsingResult_e HttpParser::parsePath()
+{
+    if (this->buffer[this->end++] != '/')
+        return STATE_ERROR_e;
+    while (isPchar(this->buffer, this->end) || this->buffer[this->end] == '/')
+        ++this->end;
+
+    this->request->requestLine.requestTarget.path = this->buffer.substr(this->start, this->end - this->start);
+    return STATE_INCOMPLETE_e;
+}
+
+ParsingResult_e HttpParser::parseQuery()
+{
+    while (isPchar(this->buffer, this->end) || this->buffer[this->end] == '/' || this->buffer[this->end] == '?')
+    {
+        if (this->buffer[this->end] == '&')
+        {
+            --this->end;
+            parseQueryParam();
+            this->start = ++this->end + 1;
+        }
+        ++this->end;
+    }
+    parseQueryParam();
+    return STATE_INCOMPLETE_e;
+}
+
+ParsingResult_e HttpParser::finish()
+{
+    if (this->result == STATE_INCOMPLETE_e)
+        this->result = STATE_ERROR_e;
+
+    return this->result;
 }
