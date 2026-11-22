@@ -2,21 +2,30 @@ NAME = webserv
 
 COMPILER = c++
 
-FLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDE_FLAGS)
+FLAGS = -Wall -Wextra -Werror -std=c++11 $(INCLUDE_FLAGS)
 
 MAIN = main.cpp
 
-CONFIGURATION_FILE = configuration_file/config_tmp.cpp
+CONFIGURATION = configuration/configuration.cpp
 
 HTTP = http/HttpParser.cpp
 
 SIGNAL = signal/signal.cpp
 
+SERVER = server/server.cpp
+
+RESPONSE = response/response.cpp
+
 EVENT_LOOP = event_loop/event_loop.cpp
 
-INCLUDES = event_loop \
-		   configuration_file \
+UTILS = utils/utils.cpp
+
+INCLUDES = utils \
+		   configuration \
 		   signal \
+		   server \
+		   response \
+		   event_loop \
 		   http
 
 INCLUDE = $(INCLUDES:%=src/%)
@@ -24,9 +33,13 @@ INCLUDE = $(INCLUDES:%=src/%)
 INCLUDE_FLAGS = $(addprefix -I ,$(INCLUDE))
 
 SCRIPTS = $(MAIN) \
-		  $(CONFIGURATION_FILE) \
+		  $(CONFIGURATION) \
 		  $(EVENT_LOOP) \
 		  $(SIGNAL) \
+		  $(SERVER) \
+		  $(UTILS) \
+		  $(RESPONSE) \
+		  $(HTTP)
 
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
 
@@ -43,7 +56,7 @@ $(NAME): $$(OBJS)
 
 clean:
 	rm -rf $(OBJS) src/*.o
-	rm -rf bin
+	rm -rf build
 
 fclean: clean
 	rm -rf $(NAME)
@@ -59,8 +72,9 @@ debug: all
 # 2 - module main name format: main_<module_name>.cpp
 # 3 - run make test_<module_name>
 _%: fclean
-	@mkdir bin
-	@$(MAKE) FLAGS="-g -Wall -Wextra $(INCLUDE_FLAGS)" MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=bin/%)
+	@mkdir build
+	@$(MAKE) FLAGS="-g -Wall -Wextra $(INCLUDE_FLAGS)" \
+		MAIN=main_$(@:_%=%).cpp NAME=$(@:_%=build/%)
 	rm -rf src/*.o
 
 .PHONY: all clean fclean re
