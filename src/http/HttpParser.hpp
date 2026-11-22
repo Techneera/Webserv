@@ -1,6 +1,7 @@
 #ifndef HTTP_PARSER_HPP
 # define HTTP_PARSER_HPP
 
+#include <cstddef>
 # include <string>
 # include <stdexcept>
 # include "HttpRequest.hpp"
@@ -47,6 +48,8 @@ class HttpParser
         ParsingStage_e  stage;
         std::string     data;
         std::string     buffer;
+        size_t          start;
+        size_t          end;
 
         // Disable copying to prevent shallow copying.
         HttpParser(const HttpParser& other);
@@ -72,7 +75,15 @@ class HttpParser
          */
         void parseMessageBody();
 
-        void parseQueryParam(std::string params);
+        ParsingResult_e parseRequestMethod();
+
+        ParsingResult_e parseHttpVersion();
+
+        ParsingResult_e parsePath();
+
+        ParsingResult_e parseQuery();
+
+        void parseQueryParam();
 
         bool isToken(const char& c);
 
@@ -105,7 +116,9 @@ class HttpParser
          * @throws std::logic_error if parsing is incomplete
          *         or has failed.
          */
-        const HttpRequest_t& getRequest() const;
+        const HttpRequest_t& getRequest()const;
+
+        ParsingResult_e finish();
 };
 
 #endif
