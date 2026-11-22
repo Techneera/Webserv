@@ -1,6 +1,5 @@
 #include "HttpParser.hpp"
 #include "HttpRequest.hpp"
-#include <sstream>
 #include <map>
 #include <cctype>
 #include <cstring>
@@ -94,21 +93,24 @@ void HttpParser::parseRequestLine()
     this->result = STATE_DONE_e;
 };
 
-void HttpParser::parseQueryParam(std::string params)
+void HttpParser::parseQueryParam()
 {
-    size_t foundEqualSign = params.find("=");
+    size_t foundEqualSign = this->buffer.find("=", this->start);
     if (foundEqualSign != std::string::npos)
     {
+        size_t queryEnd = this->end - foundEqualSign - (this->buffer[this->end] == ' ');
         this->request->requestLine.requestTarget.query.insert(
             std::make_pair(
-                params.substr(0, foundEqualSign), params.substr(foundEqualSign + 1)
+                this->buffer.substr(this->start, foundEqualSign - this->start), this->buffer.substr(foundEqualSign + 1, queryEnd)
             )
         );
         return ;
     }
-    this->request->requestLine.requestTarget.query.insert(
-        std::make_pair(params, "")
-    );
+    std::string flag = this->buffer.substr(this->start, this->end - this->start);
+    if (!flag.empty())
+        this->request->requestLine.requestTarget.query.insert(
+            std::make_pair(flag, "")
+        );
 }
 
 ParsingResult_e HttpParser::feed(const char* input, size_t bytesRead)
@@ -135,7 +137,7 @@ const HttpRequest_t& HttpParser::getRequest() const
 bool HttpParser::isToken(const char& c)
 {
     return (
-        c > 31 && c < 127 &&
+        c > 32 && c < 127 &&
         c != '"' && c != '(' &&
         c != ')' && c != ',' &&
         c != '/' && c != ':' &&
