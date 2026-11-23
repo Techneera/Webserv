@@ -639,6 +639,20 @@ namespace   cfg
         return (errorPagesResponses);
     }
 
+    static mmap_location stt_locationGet(mmap_location::iterator &itLocation,
+                                         mmap_location::iterator &locationEnd)
+    {
+        mmap_location location;
+
+        for ( ; itLocation != locationEnd; itLocation++)
+        {
+        }
+
+        return (location);
+    }
+
+    // @brief:  parse configuration semantic wise into the final configuration
+    //          structure that will be then passed to server object
     static s_config   stt_parseConfigSemantics(const s_dBlock &httpBlock)
     {
         // Simple Directives
@@ -650,21 +664,34 @@ namespace   cfg
         if (dSimple.size() != 4)
             throw(static_cast<int>(utl::err_BadDirectiveSimple));
 
-        if ((itSimple = dSimple.lower_bound(e_listen)) == dSimpleEnd)
+        if (dSimple.count(e_listen) != 1)
             throw(static_cast<int>(utl::err_MissingPort));
+        itSimple = dSimple.lower_bound(e_listen);
         config.port = stt_portGet(itSimple->second);
 
-        if ((itSimple = dSimple.lower_bound(e_host)) == dSimpleEnd)
+        if (dSimple.count(e_host) != 1)
             throw(static_cast<int>(utl::err_MissingIp));
+        itSimple = dSimple.lower_bound(e_host);
         config.ip = stt_ipGet(itSimple->second);
 
-        if ((itSimple = dSimple.lower_bound(e_client_max_body_size)) == dSimpleEnd)
+        if (dSimple.count(e_client_max_body_size) != 1)
             throw(static_cast<int>(utl::err_MissingClientMaxBodySize));
+        dSimple.lower_bound(e_client_max_body_size);
         config.clientMaxBodySize = stt_clientMaxBodySizeGet(itSimple->second);
 
-        if ((itSimple = dSimple.lower_bound(e_error_pages)) == dSimpleEnd)
+        if (dSimple.count(e_error_pages) != 1)
             throw(static_cast<int>(utl::err_MissingErrorPages));
+        dSimple.lower_bound(e_error_pages);
         config.errorPages = stt_errorPagesGet(itSimple->second);
+
+        mmap_dBlock             dBlock = httpBlock.dBlock;
+        mmap_dBlock::iterator   itBlock;
+        mmap_dBlock::iterator   dBlockEnd = dBlock.end();
+        mmap_dBlock::iterator   locationEnd = dBlock.upper_bound(e_location);
+
+        if ((itBlock = dBlock.lower_bound(e_location)) == dBlockEnd)
+            throw(static_cast<int>(utl::err_MissingLocation));
+        config.location = stt_locationGet(itBlock, locationEnd);
 
         return (config);
     }
