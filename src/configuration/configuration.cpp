@@ -639,16 +639,99 @@ namespace   cfg
         return (errorPagesResponses);
     }
 
-    static mmap_location stt_locationGet(mmap_location::iterator &itLocation,
-                                         mmap_location::iterator &locationEnd)
+    // @details:    1 - Verify if path exists
+    //              2 - cache response
+    static std::string  stt_rootGet()
     {
-        mmap_location location;
+        std::string root;
+
+        return (root);
+    }
+
+    // @details:    1 - Verify if args are valid
+    //              2 - Set each method o true or false
+    static void stt_methodsGet()
+    {
+    }
+
+    // @details:    1 - Verify if arg is valid
+    //              2 - Rerturn true or false
+    static bool stt_autoindexGet()
+    {
+    }
+
+    // @details:    1 - If path exists
+    //              2 -     Return cached response
+    //              3 - If AutoIndex is true
+    //              4 -     Create html
+    //              5 -     Return cached response
+    //              6 - Throw exception
+    static std::string  stt_indexGet()
+    {
+        std::string index;
+
+
+        return (index);
+    }
+
+    // @details:    1 - Check if path is valid
+    //              2 - Return path
+    static std::string  stt_uploadPathGet()
+    {
+        std::string uploadPath;
+
+
+        return (uploadPath);
+    }
+
+    // @details: TO BE DEFINED
+    /*static void stt_cgiGet()
+    {
+    }*/
+
+    static mmap_location    stt_locationGet(mmap_dBlock::iterator &itLocation,
+                                         mmap_dBlock::iterator &locationEnd)
+    {
+        mmap_location           locations;
 
         for ( ; itLocation != locationEnd; itLocation++)
         {
+            s_dBlock                dBlock = itLocation->second;
+            mmap_dSimple            dSimple = dBlock.dSimple;
+            mmap_dSimple::iterator  dSimpleEnd = dSimple.end();
+            mmap_dSimple::iterator  itSimple;
+            s_location              location;
+
+            if (dSimple.size() != 5)
+                throw(static_cast<int>(utl::err_BadDirectiveSimple));
+
+            if (dSimple.count(e_root) != 1)
+                throw(static_cast<int>(utl::err_MissingRoot));
+            itSimple = dSimple.lower_bound(e_methods);
+            location.root = stt_rootGet();
+
+            /*if (dSimple.count(e_methods) != 1)
+                throw(static_cast<int>(utl::err_MissingMethods));
+            itSimple = dSimple.lower_bound(e_methods);
+            location.methods = stt_methodsGet();
+
+            if (dSimple.count(e_autoindex) != 1)
+                throw(static_cast<int>(utl::err_MissingAutoIndex));
+            itSimple = dSimple.lower_bound(e_methods);
+            location.autoIndex = stt_autoIndexGet();
+
+            if (dSimple.count(e_index) != 1)
+                throw(static_cast<int>(utl::err_MissingAutoIndex));
+            itSimple = dSimple.lower_bound(e_methods);
+            location.index = stt_indexGet();
+
+            if (dSimple.count(e_upload_path) != 1)
+                throw(static_cast<int>(utl::err_MissingAutoIndex));
+            itSimple = dSimple.lower_bound(e_methods);
+            location.uploadPath = stt_uploadPathGet();*/
         }
 
-        return (location);
+        return (locations);
     }
 
     // @brief:  parse configuration semantic wise into the final configuration
@@ -676,12 +759,12 @@ namespace   cfg
 
         if (dSimple.count(e_client_max_body_size) != 1)
             throw(static_cast<int>(utl::err_MissingClientMaxBodySize));
-        dSimple.lower_bound(e_client_max_body_size);
+        itSimple = dSimple.lower_bound(e_client_max_body_size);
         config.clientMaxBodySize = stt_clientMaxBodySizeGet(itSimple->second);
 
         if (dSimple.count(e_error_pages) != 1)
             throw(static_cast<int>(utl::err_MissingErrorPages));
-        dSimple.lower_bound(e_error_pages);
+        itSimple = dSimple.lower_bound(e_error_pages);
         config.errorPages = stt_errorPagesGet(itSimple->second);
 
         mmap_dBlock             dBlock = httpBlock.dBlock;
@@ -689,6 +772,8 @@ namespace   cfg
         mmap_dBlock::iterator   dBlockEnd = dBlock.end();
         mmap_dBlock::iterator   locationEnd = dBlock.upper_bound(e_location);
 
+        if (dBlock.count(e_location) != dBlock.size())
+            throw(static_cast<int>(utl::err_MissingLocation));
         if ((itBlock = dBlock.lower_bound(e_location)) == dBlockEnd)
             throw(static_cast<int>(utl::err_MissingLocation));
         config.location = stt_locationGet(itBlock, locationEnd);

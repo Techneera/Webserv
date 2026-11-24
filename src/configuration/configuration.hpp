@@ -127,6 +127,7 @@ namespace cfg
     // @brief:  Representing the location block, holds multiple directives
     typedef struct s_location
     {
+        std::string root;
         utl::ibMap  methods; // can be half assigned already, then off or on
         bool        autoIndex;
         std::string index; // maybe the actual cached response already?

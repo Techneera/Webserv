@@ -31,6 +31,11 @@ namespace   utl
         err_MissingErrorPages,
         err_MissingClientMaxBodySize,
         err_MissingLocation,
+        err_MissingRoot,
+        err_MissingMethods,
+        err_MissingAutoIndex,
+        err_MissingIndex,
+        err_MissingUploadPath,
     };
 
     // @brief:      typedefs that can probably be used in several
