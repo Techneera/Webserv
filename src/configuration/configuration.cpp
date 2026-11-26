@@ -645,6 +645,8 @@ namespace   cfg
     {
         std::string root;
 
+        DIR *errorPagesDir = opendir(errorPagesBlock[0].c_str());
+
         return (root);
     }
 
