@@ -2,7 +2,7 @@ NAME = webserv
 
 COMPILER = c++
 
-FLAGS = -Wall -Wextra -Werror -std=c++11 $(INCLUDE_FLAGS)
+FLAGS = -Wall -Wextra -Werror -std=c++98 $(INCLUDE_FLAGS)
 
 MAIN = main.cpp
 
