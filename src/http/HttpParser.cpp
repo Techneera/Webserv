@@ -101,7 +101,8 @@ void HttpParser::parseQueryParam()
         size_t queryEnd = this->end - foundEqualSign - (this->buffer[this->end] == ' ');
         this->request->requestLine.requestTarget.query.insert(
             std::make_pair(
-                this->buffer.substr(this->start, foundEqualSign - this->start), this->buffer.substr(foundEqualSign + 1, queryEnd)
+                this->buffer.substr(this->start, foundEqualSign - this->start),
+                this->buffer.substr(foundEqualSign + 1, queryEnd)
             )
         );
         return ;
