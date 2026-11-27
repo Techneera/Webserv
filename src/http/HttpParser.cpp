@@ -221,7 +221,8 @@ ParsingResult_e HttpParser::parsePath()
 
 ParsingResult_e HttpParser::parseQuery()
 {
-    while (isPchar(this->buffer, this->end) || this->buffer[this->end] == '/' || this->buffer[this->end] == '?')
+    while (isPchar(this->buffer, this->end) || this->buffer[this->end] == '/'
+                || this->buffer[this->end] == '?')
     {
         if (this->buffer[this->end] == '&')
         {
