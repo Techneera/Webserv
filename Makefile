@@ -8,6 +8,8 @@ MAIN = main.cpp
 
 CONFIGURATION = configuration/configuration.cpp
 
+HTTP = http/HttpParser.cpp
+
 SIGNAL = signal/signal.cpp
 
 SERVER = server/server.cpp
@@ -23,7 +25,8 @@ INCLUDES = utils \
 		   signal \
 		   server \
 		   response \
-		   event_loop
+		   event_loop \
+		   http
 
 INCLUDE = $(INCLUDES:%=src/%)
 
@@ -35,7 +38,8 @@ SCRIPTS = $(MAIN) \
 		  $(SIGNAL) \
 		  $(SERVER) \
 		  $(UTILS) \
-		  $(RESPONSE)
+		  $(RESPONSE) \
+		  $(HTTP)
 
 SRCS = $(SCRIPTS:%.cpp=src/%.cpp)
 
