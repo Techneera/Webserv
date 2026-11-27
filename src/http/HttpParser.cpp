@@ -203,7 +203,8 @@ ParsingResult_e HttpParser::parseHttpVersion()
         return STATE_ERROR_e;
     if (!std::isdigit(this->buffer[++this->end]))
         return STATE_ERROR_e;
-    this->request->requestLine.version = this->buffer.substr(this->start, ++this->end - this->start);
+    this->request->requestLine.version =
+          this->buffer.substr(this->start, ++this->end - this->start);
     return STATE_INCOMPLETE_e;
 }
 
